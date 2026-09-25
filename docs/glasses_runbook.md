@@ -6,8 +6,8 @@ are the ones that were actually used on 18 September 2026 to make the recordings
 documentation.
 
 Two paths changed when the project was reorganised into a single repository. `$ARIA`
-now points at the repository itself, and the client SDK samples now live under
-`vendor/` rather than directly in the project folder. Both are reflected below.
+now points at the repository itself. The client SDK samples now live under `vendor/`
+rather than directly in the project folder. Both are reflected below.
 
 ## Step 1: set up the shell
 

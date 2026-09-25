@@ -11,7 +11,7 @@ projectaria-tools==2.3.0
 # can leave it out if you are just reading recordings someone else made.
 projectaria_client_sdk==2.5.0
 
-# This is where SAM and SAM2VideoPredictor come from, and YOLO along with them.
+# This is where SAM and SAM2VideoPredictor come from. YOLO comes out of here too.
 ultralytics==8.4.157
 
 # Ultralytics pulls these in itself, but we pin them anyway. Why bother ? Because a
@@ -19,7 +19,7 @@ ultralytics==8.4.157
 torch==2.13.0
 torchvision==0.28.0
 
-# SGBM lives here, and so does every undistort and remap in the stereo notebook.
+# SGBM lives here. So does every undistort and remap in the stereo notebook.
 opencv-python==4.11.0.86
 
 # The ordinary numerical stack. numpy carries the point clouds and the poses,

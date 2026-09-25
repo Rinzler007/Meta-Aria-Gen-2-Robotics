@@ -10,8 +10,8 @@
 recordings/
 *.vrs
 
-# Model weights. Ultralytics downloads these on demand, and it drops them into whatever
-# the working directory happens to be, so the extensions matter as much as the folder.
+# Model weights. Ultralytics downloads these on demand and drops them into whatever the
+# working directory happens to be, so the extensions matter as much as the folder.
 # The extra formats are here for when we export a model rather than just load one.
 models/
 *.pt
@@ -65,8 +65,8 @@ env/
 .env.*
 
 # macOS scatters these about. The ._ files in particular turn up whenever files get
-# copied to a drive that is not formatted for the Mac, and we move large files around a
-# lot on this project.
+# copied to a drive that is not formatted for the Mac. We move large files around a lot
+# on this project.
 .DS_Store
 ._*
 .Spotlight-V100

@@ -25,6 +25,13 @@ The second is the point cloud of that object, one per frame and one accumulated.
 Both come out of `notebooks/Aria_Gen2_04_stereo_depth.ipynb` and both land in
 `outputs/`.
 
+## Working the glasses
+
+`docs/glasses_runbook.md` holds the commands that were actually used to pair the glasses,
+record, download and stream both over the cable and untethered, along with the
+troubleshooting that came out of getting it wrong the first time. It is a record of what
+worked rather than a copy of the documentation.
+
 ## The notebooks
 
 | Notebook | What it does |
@@ -65,13 +72,13 @@ frame was hiding most of the real travel. Skipping that step would teach a robot
 motion three times smaller than the one the person performed.
 
 All figures in this section come from the notebook runs recorded in
-`notebooks/Aria_Gen2_04_stereo_depth.ipynb`, and the cell outputs are kept in the
-committed notebook so they can be read without rerunning anything.
+`notebooks/Aria_Gen2_04_stereo_depth.ipynb`. The cell outputs are kept in the
+committed notebook, so they can be read without rerunning anything.
 
 ## Layout
 
-Everything this project needs now sits inside the repository, and git takes only the
-part of it that belongs in git.
+Everything this project needs now sits inside the repository. Git takes only the part
+of it that belongs in git.
 
 ```
 notebooks/        the four notebooks, with their cell outputs kept
@@ -91,8 +98,8 @@ nothing below breaks.
 
 ## What git takes and what it leaves
 
-The working copy is about 2.9 GB while the git history is 27 MB, and the gap between
-those two numbers is the whole arrangement. It is worth stating plainly why the data
+The working copy is about 2.9 GB while the git history is 27 MB. The gap between those
+two numbers is the whole arrangement. It is worth stating plainly why the data
 is safe to keep in here.
 
 GitHub refuses outright any single file over 100 MB. Seven files here are over that
@@ -112,7 +119,7 @@ sequences were being looked at.
 
 One consequence follows from all of this and it matters. The data is ignored rather
 than absent, which makes it precisely what `git clean -x` is built to delete. Never run
-that command in here. The weights and the cache would come back on their own, and the
+that command in here. The weights and the cache would come back on their own. The
 1.9 GB of recordings would not.
 
 A fresh clone therefore arrives with the code and the deliverables and none of the
@@ -166,21 +173,21 @@ track the tool or the material.
 The VIO stream used here runs at 10 samples per second against 30 frame per second
 video, so each pose matches a frame only to within 50 ms. There is a
 `vio_high_frequency` stream in the same file at roughly 800 samples per second which
-would remove that, and it reports the device pose directly without the chaining
+would remove that. It also reports the device pose directly without the chaining
 step.
 
 Depth noise smears each cloud along the viewing direction, which is why the spoon
 measures deeper than it is wide. Fixing it needs either filtering across
 neighbouring pixels or averaging across frames.
 
-Tracking holds for about 100 frames and then slides onto a nearby object, and the
-mask score stays high while it does so. The model's own confidence therefore cannot
+Tracking holds for about 100 frames and then slides onto a nearby object. The mask
+score stays high while it does so. The model's own confidence therefore cannot
 be used to detect the model's own failure, so a longer sequence needs either
 re-prompting or an independent check that the mask still sits where the hand is.
 
 The speed based segmentation in notebook 01 is wrong in a way that matters. The
 quiet stretch of the pouring recording is exactly when the task happens, because
-scooping is slow, and the fast stretches are walking around. Speed alone finds
+scooping is slow. The fast stretches are walking around. Speed alone finds
 locomotion rather than manipulation. Detecting when a hand closes on something would
 be the better signal and the hand landmarks needed to build it are already in hand.
 
