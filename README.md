@@ -62,13 +62,13 @@ written into the recording file next to the raw camera footage.
 These are the rates measured from our own pouring recording rather than read off a
 specification page.
 
-| Stream | Samples | Rate |
-| --- | --- | --- |
-| `camera-rgb` | 2012 | 30.0 fps |
-| `handtracking` | 2011 | 30.0 Hz |
-| `eyegaze` | 2012 | 30.0 Hz |
-| `vio` | 670 | 10.0 Hz |
-| `vio_high_frequency` | 52295 | 794.1 Hz |
+| Stream               | Samples | Rate     |
+| -------------------- | ------- | -------- |
+| `camera-rgb`         | 2012    | 30.0 fps |
+| `handtracking`       | 2011    | 30.0 Hz  |
+| `eyegaze`            | 2012    | 30.0 Hz  |
+| `vio`                | 670     | 10.0 Hz  |
+| `vio_high_frequency` | 52295   | 794.1 Hz |
 
 ## What the glasses do not give you
 
@@ -109,11 +109,11 @@ camera frame was taken. Getting that right is what everything else rests on.
 Three recordings were captured over USB on 18 September 2026. The counts below were
 read out of the files.
 
-| Recording | Duration | Colour frames | Hand samples | VIO samples |
-| --- | --- | --- | --- | --- |
-| `cup_demo_01` | 39.5 s | 1185 at 30.0 fps | 1184 at 30.0 Hz | 393 at 10.0 Hz |
-| `cup_demo_02` | 15.7 s | 472 at 30.0 fps | 472 at 30.0 Hz | 156 at 9.9 Hz |
-| `pouring_scooping_1` | 67.1 s | 2012 at 30.0 fps | 2011 at 30.0 Hz | 670 at 10.0 Hz |
+| Recording            | Duration | Colour frames    | Hand samples    | VIO samples    |
+| -------------------- | -------- | ---------------- | --------------- | -------------- |
+| `cup_demo_01`        | 39.5 s   | 1185 at 30.0 fps | 1184 at 30.0 Hz | 393 at 10.0 Hz |
+| `cup_demo_02`        | 15.7 s   | 472 at 30.0 fps  | 472 at 30.0 Hz  | 156 at 9.9 Hz  |
+| `pouring_scooping_1` | 67.1 s   | 2012 at 30.0 fps | 2011 at 30.0 Hz | 670 at 10.0 Hz |
 
 We chose recording profile 10 over the default profile 8. A profile decides which
 sensors are switched on and at what rate. Profile 10 records colour video at 30 frames
@@ -259,12 +259,12 @@ the wrist and the palm in 3D, worked out on the device. Projecting those known p
 our rectified image and reading our computed depth at those same pixels gives an honest
 comparison. Four points were tested.
 
-| Point | Truth | Our stereo | Error |
-| --- | --- | --- | --- |
-| right palm | 0.491 m | 0.489 m | -0.002 m |
-| right wrist | 0.461 m | 0.481 m | +0.020 m |
-| left wrist | 0.458 m | 1.165 m | +0.707 m |
-| left palm | 0.480 m | no depth nearby | none returned |
+| Point       | Truth   | Our stereo      | Error         |
+| ----------- | ------- | --------------- | ------------- |
+| right palm  | 0.491 m | 0.489 m         | -0.002 m      |
+| right wrist | 0.461 m | 0.481 m         | +0.020 m      |
+| left wrist  | 0.458 m | 1.165 m         | +0.707 m      |
+| left palm   | 0.480 m | no depth nearby | none returned |
 
 Two of the four agreed closely, to 2 mm and to 2 cm. One was wrong by 70.7 cm, which is our
 stereo reporting two and a half times the true distance. One returned nothing at all.
@@ -308,10 +308,10 @@ frames were placed.
 
 The difference is large.
 
-| Frame | x span | y span | z span |
-| --- | --- | --- | --- |
+| Frame  | x span  | y span  | z span  |
+| ------ | ------- | ------- | ------- |
 | device | 0.060 m | 0.084 m | 0.165 m |
-| room | 0.188 m | 0.182 m | 0.188 m |
+| room   | 0.188 m | 0.182 m | 0.188 m |
 
 In the device frame the spoon spans 6.0 cm in x. In the room it spans 18.8 cm. The wearer was
 following the spoon with their head, so the head motion and the hand motion largely cancelled
@@ -372,12 +372,12 @@ deterministic.
 
 ## The notebooks
 
-| Order | File | What it does |
-| --- | --- | --- |
-| 1 | `vrs_basics_hand_trajectory.ipynb` | Reads a VRS file, measures the real stream rates, pulls out the wrist path then separates activity from rest using speed. |
-| 2 | `device_calibration.ipynb` | Meta's own calibration tutorial, kept because it is where the sensor extrinsics and the fisheye models come from. |
-| 3 | `object_detection.ipynb` | The detection attempts, then SAM, then video tracking with `SAM2VideoPredictor`. |
-| 4 | `stereo_depth.ipynb` | Stereo rectification, depth, the object point cloud, room coordinates then automatic prompting. |
+| Order | File                               | What it does                                                                                                              |
+| ----- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1     | `vrs_basics_hand_trajectory.ipynb` | Reads a VRS file, measures the real stream rates, pulls out the wrist path then separates activity from rest using speed. |
+| 2     | `device_calibration.ipynb`         | Meta's own calibration tutorial, kept because it is where the sensor extrinsics and the fisheye models come from.         |
+| 3     | `object_detection.ipynb`           | The detection attempts, then SAM, then video tracking with `SAM2VideoPredictor`.                                          |
+| 4     | `stereo_depth.ipynb`               | Stereo rectification, depth, the object point cloud, room coordinates then automatic prompting.                           |
 
 The filenames no longer carry numbers, so the order column is what tells you how to read them. The
 later ones assume the earlier ones, because `stereo_depth` reuses the prompt point that
@@ -402,6 +402,10 @@ These are written down so that nobody repeats them.
   thing looked self consistent while being wrong.
 - `inspect.signature` fails on `projectaria_tools` functions because they are pybind11 bindings.
   Read `.__doc__` instead.
+- The high frequency pose accessor is `get_vio_high_freq_data_by_index`. The name shortens
+  `frequency` down to `freq`, so the spelling you would expect fails with an attribute error. When
+  you only want a stream's rate, `get_num_data` together with `get_first_time_ns` and
+  `get_last_time_ns` gives it without reading a single record.
 - Save figures before calling `plt.show()`. Calling show first closes the figure, so a savefig
   afterwards writes a blank white image.
 - Do not install `ultralytics[export]`. It drags in TensorFlow, CoreML and OpenVINO, downgrades
@@ -419,7 +423,7 @@ belongs in git.
 ```
 notebooks/        the four notebooks, with their cell outputs kept
 outputs/          the deliverables, which are the trajectory, the clouds and the figures
-reports/          the weekly progress reports, Week 1.docx and Week 2.docx
+reports/          the weekly progress reports
 docs/             the runbook for working the glasses
 requirements.txt
 recordings/       the .vrs files, 1.9 GB, ignored
