@@ -138,12 +138,24 @@ into the wrong place.
 | `aria_gen2_sample_data_1.vrs` | 268 MB | Meta's public sample recording, which needs no credentials and is what notebook 02 reads. |
 
 All four of the first recordings were made on 18 September 2026 using recording
-profile 10 rather than the default profile 8, because profile 10 records colour
-video at 30 frames per second and that matches the hand tracking rate. The pouring
-recording came out at 1185 colour frames against 1184 hand tracking samples, so the
-two streams line up one to one. On the public sample the same comparison is 400
-against 1200, which is a three to one mismatch that would have had to be resolved
-later.
+profile 10 rather than the default profile 8, because profile 10 records colour video at
+30 frames per second and that matches the hand tracking rate. The counts below were read
+out of the files rather than off a specification page. Every one of the three lines up
+very nearly one to one.
+
+| Recording | Duration | Colour frames | Hand samples | VIO samples |
+| --- | --- | --- | --- | --- |
+| `cup_demo_01` | 39.5 s | 1185 at 30.0 fps | 1184 at 30.0 Hz | 393 at 10.0 Hz |
+| `cup_demo_02` | 15.7 s | 472 at 30.0 fps | 472 at 30.0 Hz | 156 at 9.9 Hz |
+| `pouring_scooping_1` | 67.1 s | 2012 at 30.0 fps | 2011 at 30.0 Hz | 670 at 10.0 Hz |
+
+On the public sample the same comparison is 400 colour frames against 1200 hand samples,
+a three to one mismatch that would have had to be resolved later.
+
+The VIO column is the reason the trajectory work carries an approximation. Profile 10
+lifts the video to 30 frames per second and leaves VIO at 10, so a pose only ever matches
+a frame to within 50 ms. The `vio_high_frequency` stream in the same file runs at roughly
+800 Hz and would remove that.
 
 ## Environment
 
