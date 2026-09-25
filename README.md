@@ -70,44 +70,55 @@ committed notebook so they can be read without rerunning anything.
 
 ## Layout
 
-Everything in this repository is either code, a deliverable or a write up. Nothing
-here is large and nothing here is regenerable from somewhere else.
+Everything this project needs now sits inside the repository, and git takes only the
+part of it that belongs in git.
 
 ```
-notebooks/    the four notebooks, with their cell outputs kept
-outputs/      the deliverables, which is the trajectory, the clouds and the figures
-reports/      the write up for the course
+notebooks/        the four notebooks, with their cell outputs kept
+outputs/          the deliverables, which is the trajectory, the clouds and the figures
+reports/          the write up for the course
 requirements.txt
+recordings/       the .vrs files, 1.9 GB, ignored
+models/           the YOLO and SAM weights, 431 MB, ignored
+cache/            exported frames, the mp4 and cached centroids, 489 MB, ignored
+reference/        papers and the dataset manifest, the papers ignored
+vendor/           Meta's unmodified client SDK samples, 488 KB, ignored
 ```
 
-## What is deliberately outside this repository
+The notebooks find the data by walking up a single level from their own folder, so
+every path is relative to this repository. You can rename it or move it anywhere and
+nothing below breaks.
 
-The project folder that contains this repository holds the heavy things, and none
-of them are in git. The notebooks find them by walking up from their own location,
-so the arrangement below is not a convention that you can rename freely. It is
-wired into the first code cell of each notebook.
+## What git takes and what it leaves
 
-```
-<project folder>/
-    Meta-Aria-Gen-2-Robotics/   this repository
-    recordings/                 the .vrs files, about 1.9 GB
-    models/                     the YOLO and SAM weights, about 431 MB
-    cache/                      exported frames, the mp4 and cached centroids, about 489 MB
-    reference/                  papers and dataset manifests, about 36 MB
-    vendor/                     Meta's unmodified client SDK samples
-```
+The working copy is about 2.9 GB while the git history is 27 MB, and the gap between
+those two numbers is the whole arrangement. It is worth stating plainly why the data
+is safe to keep in here.
 
-Each of those is excluded on its own merits. The recordings are the raw data and
-they are far too large for git. The weights download again from Ultralytics in a
-single line. The cache is entirely derived, so notebook 03 rebuilds the exported
-frames and the mp4 from the recording whenever they are missing. The vendored
-samples ship with the client SDK and were never edited here.
+GitHub refuses outright any single file over 100 MB. Seven files here are over that
+limit, the largest being a 925 MB recording, so a push carrying them would fail rather
+than quietly succeed. None of them ever get far enough to be refused, because
+`.gitignore` excludes `recordings/`, `models/`, `cache/`, `vendor/` and the pdf files
+inside `reference/`. Git does not list those, will not stage them and cannot push
+them.
 
-To set the folders up from a fresh clone, place this repository inside a project
-folder and create `recordings`, `models` and `cache` next to it. Notebooks 01, 03
-and 04 assert that `recordings` and `models` exist and they stop with a clear
-message if either is absent, which is better than quietly writing output into the
-wrong place.
+Each exclusion stands on its own merits. The recordings are the raw data and they are
+far too large for git. The weights download again from Ultralytics in a single line.
+The cache is entirely derived, so notebook 03 rebuilds the exported frames and the mp4
+from the recording whenever it finds them missing. The vendored samples ship with the
+client SDK and were never edited here. The two papers are public downloads, though the
+104 KB dataset manifest sitting beside them is versioned, because it records which
+sequences were being looked at.
+
+One consequence follows from all of this and it matters. The data is ignored rather
+than absent, which makes it precisely what `git clean -x` is built to delete. Never run
+that command in here. The weights and the cache would come back on their own, and the
+1.9 GB of recordings would not.
+
+A fresh clone therefore arrives with the code and the deliverables and none of the
+data. Notebooks 01, 03 and 04 assert that `recordings` and `models` exist and they stop
+with a clear message if either is absent, which is better than quietly writing output
+into the wrong place.
 
 ### The recordings
 
@@ -130,12 +141,12 @@ later.
 ## Environment
 
 The notebooks were run under Python 3.12.14 in a virtual environment that lives
-outside the project folder, at `~/projectaria_gen2_python_env`. The versions in
+outside the repository, at `~/projectaria_gen2_python_env`. The versions in
 `requirements.txt` were read out of that environment rather than chosen, so they
 are versions that have genuinely worked.
 
 ```
-python3 -m venv <somewhere outside the project>
+python3 -m venv <somewhere outside the repository>
 source <that>/bin/activate
 pip install -r requirements.txt
 ```

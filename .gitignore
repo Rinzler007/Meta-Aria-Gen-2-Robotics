@@ -13,6 +13,12 @@ cache/
 vendor/
 _to_delete/
 
+# The reference folder is a mixed bag, so we split it. The two papers are public and
+# anyone can download them again, so 36 MB of pdf stays out of git. The dataset
+# manifest is only 104 KB and it records exactly which sequences we were looking at,
+# so that one is worth versioning and it is not excluded here.
+reference/*.pdf
+
 # Virtual environments never belong in here.
 venv/
 .venv/
