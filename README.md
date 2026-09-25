@@ -368,12 +368,17 @@ Everything below lives in `outputs/` and the counts were taken by reading the fi
 - `spoon_clouds.npz` holds 100 per frame clouds along with both trajectory arrays.
 - `spoon_cloud_world.ply` declares 20,518 vertices and carries 20,518. It opens in CloudCompare
   or MeshLab without needing any of our code.
+- `spoon_cloud_world.png` renders that same cloud two ways, in perspective and from the side,
+  coloured by frame number so the spoon can be seen lifting out of the bowl. The red line through
+  it is the object centre, which is the trajectory drawn inside its own point cloud.
 - `trajectory_device_vs_room.png` draws the path twice with the mean taken out of each, which is
   where the device against room difference becomes obvious.
 - `hand_offset_sweep.png` shows the mask at four distances past the fingertip centre.
 - `wrist_speed_segmented_clean.png` is the wrist speed profile with the activity threshold drawn on.
 
-Across the 100 frames the point count runs from 84 to 541 with a median of 187. The pipeline has
+Across the 100 frames the point count runs from 84 to 541 with a median of 187. Accumulated in
+room coordinates the cloud spans 34 cm in x, 26 cm in y and 45 cm in z, which is the path the
+spoon travelled rather than the size of the spoon. The pipeline has
 been run three separate times and it produced byte identical deliverables every time, so it is
 deterministic.
 
