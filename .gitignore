@@ -1,24 +1,81 @@
-*.vrs
-*.pt
-*.mp4
-.ipynb_checkpoints/
-__pycache__/
-.DS_Store
+# The whole project lives in this one repository, data and all, so this file is what
+# stands between 2.9 GB of working folder and a 27 MB history. Everything excluded here
+# is either raw data, a download that can be fetched again or something derived that a
+# notebook rebuilds on demand.
 
-# Belt and braces. These folders are meant to sit beside the repository rather than
-# inside it, so if one ever gets moved in by accident git still refuses to take it.
+# The recordings themselves. A single one of these runs to 925 MB and GitHub refuses any
+# file over 100 MB, so a push carrying them would fail outright rather than quietly
+# succeed. We exclude both the folder and the extension, because a stray recording saved
+# somewhere else should be caught just the same.
 recordings/
+*.vrs
+
+# Model weights. Ultralytics downloads these on demand, and it drops them into whatever
+# the working directory happens to be, so the extensions matter as much as the folder.
+# The extra formats are here for when we export a model rather than just load one.
 models/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.torchscript
+*.safetensors
+
+# Everything derived. The exported frames and the mp4 are rebuilt by notebook 03 from
+# the recording whenever it finds them missing, so there is nothing here we would lose.
 cache/
+frames_*/
+*.mp4
+*.avi
+*.mov
+
+# Meta's client SDK samples. We never edited these and extract_sdk_samples puts them
+# back in one command, so they are a checkout rather than our own work.
 vendor/
-_to_delete/
 
 # The reference folder is a mixed bag, so we split it. The two papers are public and
-# anyone can download them again, so 36 MB of pdf stays out of git. The dataset
-# manifest is only 104 KB and it records exactly which sequences we were looking at,
-# so that one is worth versioning and it is not excluded here.
+# anyone can download them again, so 36 MB of pdf stays out. The dataset manifest beside
+# them is only 104 KB and it records exactly which sequences we were looking at, so that
+# one is worth versioning and it is deliberately not excluded here.
 reference/*.pdf
 
-# Virtual environments never belong in here.
+# Where does Ultralytics put its own output ? Into a runs folder next to whatever called
+# it, which for us means inside notebooks. That is a cache of annotated images rather
+# than a result, so it stays out.
+runs/
+
+# Python leftovers.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Jupyter keeps a shadow copy of every notebook as you work. Those are older duplicates
+# of files we already track, so there is no reason to carry them.
+.ipynb_checkpoints/
+
+# Virtual environments never belong in here. Ours lives in the home folder instead, at
+# ~/projectaria_gen2_python_env, which keeps it well clear of the repository.
 venv/
 .venv/
+env/
+
+# Anything holding a secret. We have no .env today and this is here so that we do not
+# have to remember on the day we add one.
+.env
+.env.*
+
+# macOS scatters these about. The ._ files in particular turn up whenever files get
+# copied to a drive that is not formatted for the Mac, and we move large files around a
+# lot on this project.
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# Editor and tool settings are personal rather than part of the project.
+.vscode/
+.idea/
+
+# Logs from long runs. Useful while you are watching them and not worth keeping.
+*.log
