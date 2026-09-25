@@ -372,19 +372,23 @@ deterministic.
 
 ## The notebooks
 
-| File | What it does |
-| --- | --- |
-| `Aria_Gen2_01_vrs_basics_hand_trajectory.ipynb` | Reads a VRS file, measures the real stream rates, pulls out the wrist path then separates activity from rest using speed. |
-| `Aria_Gen2_02_device_calibration.ipynb` | Meta's own calibration tutorial, kept because it is where the sensor extrinsics and the fisheye models come from. |
-| `Aria_Gen2_03_object_detection.ipynb` | The detection attempts, then SAM, then video tracking with `SAM2VideoPredictor`. |
-| `Aria_Gen2_04_stereo_depth.ipynb` | Stereo rectification, depth, the object point cloud, room coordinates then automatic prompting. |
+| Order | File | What it does |
+| --- | --- | --- |
+| 1 | `vrs_basics_hand_trajectory.ipynb` | Reads a VRS file, measures the real stream rates, pulls out the wrist path then separates activity from rest using speed. |
+| 2 | `device_calibration.ipynb` | Meta's own calibration tutorial, kept because it is where the sensor extrinsics and the fisheye models come from. |
+| 3 | `object_detection.ipynb` | The detection attempts, then SAM, then video tracking with `SAM2VideoPredictor`. |
+| 4 | `stereo_depth.ipynb` | Stereo rectification, depth, the object point cloud, room coordinates then automatic prompting. |
+
+The filenames no longer carry numbers, so the order column is what tells you how to read them. The
+later ones assume the earlier ones, because `stereo_depth` reuses the prompt point that
+`object_detection` found and it reads the mp4 that `object_detection` wrote.
 
 Cell outputs are committed on purpose. They are the record of what was actually observed and that
-is worth more than a clean diff. Notebook 03 guards its expensive propagation cell behind
+is worth more than a clean diff. `object_detection` guards its expensive propagation cell behind
 `FORCE_PROPAGATION`, so it skips the work once the cached centroids exist.
 
-That decision has a price worth knowing about. Notebook 03 carries about 20 MB of embedded images
-and notebook 04 carries about 9 MB, so git stores a fresh full copy of both every time a rerun gets
+That decision has a price worth knowing about. `object_detection` carries about 20 MB of embedded
+images and `stereo_depth` about 9 MB, so git stores a fresh full copy of both every time a rerun gets
 committed. One rerun took the history from 27 MB to 96 MB. Committing every rerun would push the
 repository towards a gigabyte fairly quickly, so it is better to commit a rerun when the outputs
 have actually changed in a way that matters.
@@ -415,7 +419,7 @@ belongs in git.
 ```
 notebooks/        the four notebooks, with their cell outputs kept
 outputs/          the deliverables, which are the trajectory, the clouds and the figures
-reports/          the weekly write up for the course
+reports/          the weekly progress reports, Week 1.docx and Week 2.docx
 docs/             the runbook for working the glasses
 requirements.txt
 recordings/       the .vrs files, 1.9 GB, ignored
@@ -441,8 +445,8 @@ stage them and cannot push them.
 
 Each exclusion stands on its own merits. The recordings are the raw data and they are far too large
 for git. The weights download again from Ultralytics in a single line. The cache is derived, so
-notebook 03 rebuilds the exported frames and the mp4 from the recording whenever it finds them
-missing. The vendored samples ship with the client SDK and were never edited here. The two papers
+`object_detection` rebuilds the exported frames and the mp4 from the recording whenever it finds
+them missing. The vendored samples ship with the client SDK and were never edited here. The two papers
 are public downloads. The 104 KB dataset manifest sitting beside them is versioned, because it
 records which sequences we were looking at.
 
@@ -450,9 +454,9 @@ One consequence follows from all of this. The data is ignored rather than absent
 precisely what `git clean -x` is built to delete. Never run that command in here. The weights and
 the cache would come back on their own. The 1.9 GB of recordings would not.
 
-A fresh clone therefore arrives with the code and the deliverables and none of the data. Notebooks
-01, 03 and 04 check that `recordings` and `models` exist then stop with a clear message if either
-one is missing, which beats quietly writing output into the wrong place.
+A fresh clone therefore arrives with the code and the deliverables and none of the data. Every
+notebook except `device_calibration` checks that `recordings` and `models` exist then stops with a
+clear message if either one is missing, which beats quietly writing output into the wrong place.
 
 ## Environment
 
@@ -496,7 +500,7 @@ answer with no reset, so one bad centre would steer the next one.
 Only one object is handled at a time. Several objects would mean one prompt and one track each,
 which SAM supports and which has not been built.
 
-The speed based segmentation in notebook 01 is wrong in a way that matters. The quiet stretch of the
+The speed based segmentation in `vrs_basics_hand_trajectory` is wrong in a way that matters. The quiet stretch of the
 pouring recording is exactly when the task happens, because scooping is slow. The fast stretches
 are the wearer walking around. Speed on its own finds locomotion rather than manipulation. Working
 out when a hand closes on something would be the better signal and the hand landmarks needed to

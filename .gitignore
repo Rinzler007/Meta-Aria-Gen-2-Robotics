@@ -73,6 +73,10 @@ env/
 .Trashes
 .fseventsd
 
+# Word leaves a lock file beside any document it has open, named with a ~$ prefix. They
+# vanish when the document is closed, so there is never a reason to commit one.
+~$*
+
 # Editor and tool settings are personal rather than part of the project.
 .vscode/
 .idea/
