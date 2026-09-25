@@ -4,3 +4,15 @@
 .ipynb_checkpoints/
 __pycache__/
 .DS_Store
+
+# Belt and braces. These folders are meant to sit beside the repository rather than
+# inside it, so if one ever gets moved in by accident git still refuses to take it.
+recordings/
+models/
+cache/
+vendor/
+_to_delete/
+
+# Virtual environments never belong in here.
+venv/
+.venv/

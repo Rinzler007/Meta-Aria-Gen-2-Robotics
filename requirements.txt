@@ -1,0 +1,42 @@
+# These are the versions that were actually installed in the environment the four
+# notebooks were run in. We read them out of pip list rather than writing down what
+# we thought they ought to be, so every pin below is a version that has really
+# worked on this pipeline.
+
+# The Aria reader. This is what opens a .vrs file, hands us the sensor streams and
+# gives us the device calibration we build the rectification on.
+projectaria-tools==2.3.0
+
+# The pairing and recording side. We only need this to talk to the glasses, so you
+# can leave it out if you are just reading recordings someone else made.
+projectaria_client_sdk==2.5.0
+
+# This is where SAM and SAM2VideoPredictor come from, and YOLO along with them.
+ultralytics==8.4.157
+
+# Ultralytics pulls these in itself, but we pin them anyway. Why bother ? Because a
+# torch upgrade is the single most likely thing to break the SAM 2 video predictor.
+torch==2.13.0
+torchvision==0.28.0
+
+# SGBM lives here, and so does every undistort and remap in the stereo notebook.
+opencv-python==4.11.0.86
+
+# The ordinary numerical stack. numpy carries the point clouds and the poses,
+# pandas reads the trajectory csv back and matplotlib draws every figure.
+numpy==2.5.3
+pandas==3.0.5
+matplotlib==3.11.2
+
+# We use Pillow to write the exported frames out as jpegs.
+pillow==11.3.0
+
+# Rerun is only used by the calibration notebook, which is Meta's own tutorial and
+# visualises the sensor rig in 3D.
+rerun-sdk==0.33.0
+rerun-notebook==0.33.0
+
+# And the notebook environment itself, so a fresh clone can open these at all.
+jupyterlab==4.6.3
+notebook==7.6.2
+ipykernel==6.31.0
