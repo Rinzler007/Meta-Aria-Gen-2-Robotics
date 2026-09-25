@@ -126,6 +126,13 @@ us to solve it afterwards.
 `pouring_scooping_1` is the recording every later result comes from. The task runs from
 roughly 18 s to 37 s. The tracked window is 100 frames starting at 32.5 s.
 
+A playback of that recording is here, which is the clip shared with the group:
+
+[PouringScooping.mov](https://drive.google.com/file/d/114BMa6YgSmGdRxVtgiFzYJ7MuxKH_KTR/view?usp=share_link)
+
+The `.vrs` files themselves are far too large for git, so this video is the quickest way
+to see what the task actually looked like before reading any of the numbers below.
+
 ## What the recordings told us
 
 The two cup recordings found both hands in almost every sample, with confidence above
