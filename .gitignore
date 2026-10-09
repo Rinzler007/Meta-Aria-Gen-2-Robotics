@@ -25,6 +25,11 @@ models/
 # the recording whenever it finds them missing, so there is nothing here we would lose.
 cache/
 frames_*/
+
+# The shareable mp4 exports. tools/export_video.py rebuilds them from the recordings in
+# a couple of minutes, and they live on Drive for anyone who needs to watch them, so
+# there is no reason to carry tens of megabytes of them in git.
+videos/
 *.mp4
 *.avi
 *.mov

@@ -142,6 +142,7 @@ is a true result and a useless demonstration.
 | `tools/check_recordings.py <files>` | Validates recordings and writes contact sheets. Run it in the lab. |
 | `tools/check_recordings.py --manifest` | Regenerates `docs/recordings.md` from what is in `recordings/`. |
 | `tools/render_object_cloud.py` | Redraws the object cloud figure from the committed npz. |
+| `tools/export_video.py` | Exports recordings to shareable mp4s in `videos/`, with timestamps burnt in. |
 
 Regenerate the manifest after adding recordings rather than editing it by hand.
 

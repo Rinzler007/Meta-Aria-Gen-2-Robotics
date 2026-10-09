@@ -323,6 +323,10 @@ def manifest(repo, dest):
         "The `.vrs` files themselves are far too large for git and are excluded by "
         "`.gitignore`, so this table is the record of what exists and what each one holds.",
         "",
+        "The October recordings are also on Drive as mp4s with timestamps burnt in: "
+        "[October recordings](https://drive.google.com/drive/folders/1L0lLAV54Fm30vN5Cqwuc7e3UM32n7d_4?usp=sharing). "
+        "`tools/export_video.py` rebuilds that set from the `.vrs` files.",
+        "",
         "| Recording | Task | Duration | Acting hand | Hand tracking | Pose | Head | Status |",
         "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
