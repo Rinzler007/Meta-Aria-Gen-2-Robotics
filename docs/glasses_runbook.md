@@ -32,13 +32,30 @@ python3 -m aria.extract_sdk_samples --output "$ARIA/vendor"
 The samples go into `vendor/` because they are Meta's code rather than ours, and
 `.gitignore` keeps that folder out of git.
 
-## Step 3: connect and pair
+## Step 3: connect
+
+On any day after the first, these two are the whole of it:
 
 ```bash
 aria_gen2 device list
-aria_gen2 auth pair
 aria_gen2 auth check
 ```
+
+Pairing is stored on this laptop rather than on the glasses, so it survives reboots,
+unplugging and weeks of leaving the device alone. `device list` printing the serial and an
+address means the cable is working. `auth check` coming back clean means the stored
+certificate is still trusted. Once both pass, go straight to step 4.
+
+The pairing command itself is only for the very first time on a new laptop:
+
+```bash
+aria_gen2 auth pair
+```
+
+That one waits for somebody holding the Companion App to approve it, so they have to be
+with the glasses while it runs. Never run it on a laptop that is already paired. It
+replaces the stored certificate and locks you out of the device until the approval happens
+all over again. The troubleshooting section below says how to dig out of that.
 
 ## Step 4: record a demonstration
 
@@ -208,3 +225,23 @@ instead:
 ```bash
 aria_gen2 recording delete -u <uuid>
 ```
+
+Every command failing with `Failed to read data from socket: asio.ssl error` means this
+laptop is offering a certificate the glasses do not trust. Running `aria_gen2 auth pair` on
+an already paired laptop is what causes it. The pairing lives in
+`~/.aria/tls-client-certs/<serial>/` as a private key together with a self signed
+certificate. Pairing again overwrites both with freshly generated ones that the glasses have
+never been told to accept. Nothing local brings the old pair back. `device list` keeps
+finding the glasses the whole time, which makes it look like a cable fault when it is not.
+
+Approval happens on the phone, so the only way out is the Companion App. With the person
+holding it standing next to the glasses:
+
+```bash
+aria_gen2 auth remove-certs
+aria_gen2 auth pair
+aria_gen2 auth check
+```
+
+They approve on the phone while `auth pair` sits waiting. On shared lab glasses this can
+cost a whole session, since the phone may not be in the building.
