@@ -97,7 +97,8 @@ def main():
 
     # The figure answers the one question the table is bad at: does the room frame
     # correction behave the same way for an object as it did for the wrist ?
-    fig, axes = plt.subplots(1, 2, figsize=(13, 0.45 * len(rows) + 2.6))
+    # Wide rather than tall, so twelve rows still read at slide and page size.
+    fig, axes = plt.subplots(1, 2, figsize=(17, 0.3 * len(rows) + 2.4))
     y = np.arange(len(rows))[::-1]
 
     for ax, (key_d, key_w, title) in zip(axes, [

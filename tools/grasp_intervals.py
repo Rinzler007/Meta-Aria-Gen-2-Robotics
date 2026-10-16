@@ -193,9 +193,11 @@ def main():
         w.writeheader()
         w.writerows(rows)
 
-    cols = 3
+    # Six across rather than three, because a figure twice as tall as it is wide cannot be
+    # read on a slide or a page. This shape fills the width instead of the height.
+    cols = 6 if len(panels) > 6 else len(panels)
     nrows = (len(panels) + cols - 1) // cols
-    fig, axes = plt.subplots(nrows, cols, figsize=(5.3 * cols, 2.8 * nrows), sharey=True)
+    fig, axes = plt.subplots(nrows, cols, figsize=(3.3 * cols, 2.7 * nrows), sharey=True)
     for ax, (name, side, ts, sp, sm, cut, gap, ivs, t0, ok) in zip(np.atleast_1d(axes).ravel(), panels):
         ax.plot(ts, sp, lw=0.6, color="#CCCCCC")
         ax.plot(ts, sm, lw=1.6, color="#065A82")
