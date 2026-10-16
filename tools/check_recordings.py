@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check Aria recordings, and build the manifest in docs/recordings.md.
+"""Check Aria recordings and build the manifest in docs/recordings.md.
 
 Two jobs, because they ask the same questions of the same files.
 
@@ -13,11 +13,11 @@ Run it with --manifest to regenerate the inventory of everything in recordings/.
 
     python3 tools/check_recordings.py --manifest
 
-A note on the thresholds below. The first version of this script judged hand tracking and
-pose quality by what fraction of samples passed, and it raised a warning on three perfectly
-good recordings. Both problems turned out to be about *where* the missing samples sit
-rather than how many there are, so that is what it measures now. A tool that cries wolf
-gets ignored, which is worse than having no tool at all.
+A note on the thresholds below. Hand tracking and pose quality are judged by *where* the
+missing samples sit rather than by what fraction of them pass. A recording can track the
+idle hand perfectly and be useless and samples missing before the hand first appears cost
+nothing while a gap in the middle breaks the demonstration. Judging by fraction raises
+warnings on perfectly good recordings and a tool that cries wolf gets ignored.
 """
 
 import argparse
@@ -47,13 +47,13 @@ REQUIRED = ["camera-rgb", "handtracking", "vio", "vio_high_frequency",
 MAX_INTERNAL_GAP = 30
 
 # VIO needs a moment to work out where it is when a recording starts. Anything rejected
-# inside this window is startup rather than failure, and the two still seconds we record
+# inside this window is startup rather than failure and the two still seconds we record
 # at the top of every clip cover it.
 VIO_SETTLE_S = 2.0
 
-# Above this much head travel the wearer was walking rather than working at a bench. The
-# October recordings sit between 47 and 151 cm and the September one reached 2748 cm, so
-# the line has plenty of room on both sides.
+# Above this much head travel the wearer was walking rather than working at a bench. A
+# bench recording keeps the head inside about 150 cm while walking across a room runs to
+# thousands, so the line has plenty of room on both sides.
 WALKING_CM = 400.0
 
 
@@ -72,7 +72,7 @@ def rate_of(provider, label):
 
 
 def hand_report(provider):
-    """For each hand: how often it was seen, where the misses are, and how far it moved.
+    """For each hand: how often it was seen, where the misses are and how far it moved.
 
     The distance matters because it tells the two hands apart by what they were doing. The
     hand holding the object travels a long way while the resting hand barely moves, so a
@@ -156,9 +156,9 @@ def vio_report(provider):
 def contact_sheet(provider, vrs_path):
     """Twelve frames spread across the recording, written next to the file.
 
-    This is the check the numbers cannot do for us. Hours once went into analysing moments
-    where the wearer happened to be looking across the room, and a glance at one of these
-    would have caught it.
+    This is the check the numbers cannot do for us. No measurement tells you the task was
+    out of shot or that the wearer was looking across the room at the critical moment. A
+    glance at twelve frames does.
     """
     sid = provider.get_stream_id_from_label("camera-rgb")
     if sid is None:
@@ -178,7 +178,7 @@ def contact_sheet(provider, vrs_path):
     plt.tight_layout()
 
     out = Path(vrs_path).with_suffix(".contact.png")
-    # Save before anything can close the figure, or we write a blank white image.
+    # Save before anything can close the figure or we write a blank white image.
     fig.savefig(out, dpi=90, bbox_inches="tight")
     plt.close(fig)
     return out
@@ -210,13 +210,13 @@ def measure(vrs_path):
 
 
 def verdict(m):
-    """Decide pass or fail, and say why in words rather than leaving a number to read."""
+    """Decide pass or fail and say why in words rather than leaving a number to read."""
     problems = []
 
     if m["missing_streams"]:
         problems.append(f"missing streams: {', '.join(m['missing_streams'])}")
 
-    # Profile 8 would give ten frames a second here, and that mismatch is exactly what
+    # Profile 8 would give ten frames a second here and that mismatch is exactly what
     # choosing profile 10 was meant to avoid.
     if m["rgb_hz"] and m["rgb_hz"] < 25:
         problems.append(f"colour video at {m['rgb_hz']:.1f} fps, so not profile 10")
@@ -241,7 +241,7 @@ def verdict(m):
         problems.append("no vio stream")
     elif v["bad_after_settle"] > 0:
         # Rejections inside the settling window are startup. Rejections after it are a
-        # tracker that genuinely struggled, and that is worth knowing about.
+        # tracker that genuinely struggled and that is worth knowing about.
         problems.append(f"{v['bad_after_settle']} poses rejected after the first "
                         f"{VIO_SETTLE_S:.0f} s, so tracking struggled mid recording")
 
@@ -334,7 +334,7 @@ def manifest(repo, dest):
     notes = []
     for f in files:
         # The device appends a timestamp like _20261008_150452 to whatever name we gave it
-        # at record time. Splitting on that recovers our own name, and dropping the suffix
+        # at record time. Splitting on that recovers our own name and dropping the suffix
         # covers the older files that carry no timestamp at all.
         stem = f.name.split("_2026")[0]
         if stem.endswith(".vrs"):
@@ -396,8 +396,8 @@ def manifest(repo, dest):
         "still period at the start of each recording covers.",
         "",
         "**Head** is how far the glasses themselves travelled. It separates working at a "
-        "bench from walking across a room. The September recording shows why that "
-        "distinction matters.",
+        "bench from walking across a room and that matters because a wrist path spanning "
+        "metres is the wearer walking rather than reaching.",
         "",
     ]
 

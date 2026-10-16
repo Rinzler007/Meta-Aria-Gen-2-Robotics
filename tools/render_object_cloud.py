@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 """Redraw the accumulated object point cloud figure from its npz.
 
-The equivalent figure used to exist in the repository without any code that produced it, so a
-fresh clone could look at it but never regenerate it. That is the one thing a deliverable
-should never be, so it lives here now.
-
 It reads `outputs/object_<recording>_clouds.npz`, which is committed, rather than the
-recording, which is far too large for git and is excluded. So this is the one thing in the
-repository that runs on a fresh clone with no data download and no model weights.
+recording, which is far too large for git and is excluded. So this runs on a fresh clone
+with no data download and no model weights.
 
     python3 tools/render_object_cloud.py                  # the most recent object run
     python3 tools/render_object_cloud.py --clouds <path>  # a specific one
@@ -29,14 +25,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # Which axis of the room frame points upwards ? We checked rather than assumed. The spoon is
-# lifted out of a bowl during these hundred frames, and z is the axis that rises steadily
+# lifted out of a bowl during these hundred frames and z is the axis that rises steadily
 # with it, gaining 9.1 cm between the first frames and the last while the other two wander
 # without going anywhere in particular.
 #
 # Note we use that rise rather than the raw span to decide. Depth noise throws a handful of
 # points a long way out, so z reads 44.8 cm across its full extent while 99 percent of the
 # cloud sits inside 23.3 cm. Two points out of 20,518 account for the difference. A span is
-# the wrong statistic to reason from here, and reading one off a plot is how you talk
+# the wrong statistic to reason from here and reading one off a plot is how you talk
 # yourself into believing an axis is mislabelled when it is not.
 UP = 2
 
@@ -91,7 +87,7 @@ def render(pts, frame_of, traj, out_path):
     ax.scatter(p[:, flat[0]], p[:, UP], c=frame_of, cmap="viridis", s=1, alpha=0.6)
     ax.plot(t[:, flat[0]], t[:, UP], color="crimson", lw=2,
             label="object centre, frame by frame")
-    # Equal aspect, or the lift gets stretched to fill the box and stops being comparable
+    # Equal aspect or the lift gets stretched to fill the box and stops being comparable
     # with the panel beside it.
     ax.set_aspect("equal")
     ax.set_xlabel(f"{ax_name[flat[0]]} (cm)")

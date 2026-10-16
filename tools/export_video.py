@@ -13,7 +13,7 @@ recordings and would otherwise put hundreds of megabytes into git for no reason.
 
 Every frame carries its timestamp in the corner. That is not decoration. Every result in
 this repository is quoted against a time within a recording, for eg. the carry in
-`scoop_01` running from 7.2 to 7.8 s, and a video without a clock cannot be checked
+`scoop_01` running from 7.2 to 7.8 s and a video without a clock cannot be checked
 against any of it.
 """
 
@@ -36,7 +36,7 @@ OCTOBER = ["scoop_01", "scoop_02", "scoop_03",
            "grip_01", "grip_02", "grip_03b"]
 
 # Half resolution. The colour camera records 2016x1512, which is far more than anyone
-# needs to see what the hands were doing, and halving it roughly quarters the file.
+# needs to see what the hands were doing and halving it roughly quarters the file.
 SCALE = 0.5
 
 # Constant quality rather than constant bitrate, so a still clip costs less than a busy

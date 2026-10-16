@@ -1,13 +1,10 @@
 # Working the glasses
 
-Everything here is run from a shell with the virtual environment active. The commands
-are the ones that were actually used on 18 September 2026 to make the recordings in
-`recordings/`, so this is a record of what worked rather than a copy of the
-documentation.
+Everything here is run from a shell with the virtual environment active. These are the
+commands that made the recordings in `recordings/`, so this is a record of what works
+rather than a copy of the documentation.
 
-Two paths changed when the project was reorganised into a single repository. `$ARIA`
-now points at the repository itself. The client SDK samples now live under `vendor/`
-rather than directly in the project folder. Both are reflected below.
+`$ARIA` points at the repository itself and the client SDK samples live under `vendor/`.
 
 ## Step 1: set up the shell
 
@@ -29,7 +26,7 @@ python3 -m pip install projectaria-tools==2.3.0
 python3 -m aria.extract_sdk_samples --output "$ARIA/vendor"
 ```
 
-The samples go into `vendor/` because they are Meta's code rather than ours, and
+The samples go into `vendor/` because they are Meta's code rather than ours and
 `.gitignore` keeps that folder out of git.
 
 ## Step 3: connect

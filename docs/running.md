@@ -21,11 +21,14 @@ cd notebooks && jupyter notebook
 ## What runs without any data
 
 A fresh clone arrives with the code and the deliverables but none of the recordings, since
-they are 5.1 GB and `.gitignore` keeps them out. One thing still works:
+they are 5.1 GB and `.gitignore` keeps them out. Two things still work, because what they
+read is committed:
 
-| Command | What it does | Needs |
-| --- | --- | --- |
-| `python3 tools/render_object_cloud.py` | Redraws `outputs/object_scoop_01_cloud.png` | `outputs/object_scoop_01_clouds.npz`, which is committed |
+| Command                                | What it does                                  | Needs                               |
+| -------------------------------------- | --------------------------------------------- | ----------------------------------- |
+| `python3 tools/render_object_cloud.py` | Redraws the object cloud figures              | the `object_*_clouds.npz` files     |
+| `python3 tools/object_summary.py`      | Collects every run into one table and figure  | the `object_*_trajectory.csv` files |
+| `python3 tools/export_ply.py`          | Rebuilds the PLY clouds, which are not in git | the `object_*_clouds.npz` files     |
 
 Everything else needs recordings. You can also read every notebook without running it,
 because the cell outputs are committed on purpose. That is the record of what was actually
@@ -54,19 +57,13 @@ them with what each contains, so you can see what you are missing. Ask for the f
 Read the order column rather than the filenames, which carry no numbers. Run them from the
 `notebooks` folder so each one can work the repository out from its own location.
 
-| Order | Notebook | Needs | Produces | Time |
-| --- | --- | --- | --- | --- |
-| 1 | `vrs_basics_hand_trajectory.ipynb` | `scoop_01` | `wrist_speed_segmented_clean.png` | 2 min |
-| 2 | `device_calibration.ipynb` | `scoop_01` | nothing, it prints and plots | 2 min |
-| 3 | `object_pipeline.ipynb` | `scoop_01`, SAM weights | the four `object_scoop_01_*` deliverables | 15 min cold, 3 min with cached masks |
-| 4 | `wrist_world_frame.ipynb` | the twelve October recordings plus `pouring_scooping_1` | `wrist_world_frame_summary.png` and `.csv`, one path figure | 10 min |
-| 5 | `activity_segmentation.ipynb` | the same thirteen | `activity_segmentation.png` and `.csv` | 10 min |
-
-Two further notebooks, `object_detection.ipynb` and `stereo_depth.ipynb`, are the September
-development record rather than part of the pipeline. Each opens with a note saying what replaced
-it. Do not run `stereo_depth.ipynb` casually, because it recreates the September deliverables in
-`outputs/` under their old `spoon_*` names. Those were removed so they could not be mistaken for
-current results.
+| Order | Notebook                           | Needs                                                   | Produces                                                    | Time                                 |
+| ----- | ---------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------ |
+| 1     | `vrs_basics_hand_trajectory.ipynb` | `scoop_01`                                              | `wrist_speed_segmented_clean.png`                           | 2 min                                |
+| 2     | `device_calibration.ipynb`         | `scoop_01`                                              | nothing, it prints and plots                                | 2 min                                |
+| 3     | `object_pipeline.ipynb`            | `scoop_01`, SAM weights                                 | the four `object_scoop_01_*` deliverables                   | 15 min cold, 3 min with cached masks |
+| 4     | `wrist_world_frame.ipynb`          | the twelve October recordings plus `pouring_scooping_1` | `wrist_world_frame_summary.png` and `.csv`, one path figure | 10 min                               |
+| 5     | `activity_segmentation.ipynb`      | the same thirteen                                       | `activity_segmentation.png` and `.csv`                      | 10 min                               |
 
 The times are rough. They were measured on an M1 with no GPU, except the cold run of notebook 3,
 which depends on how long SAM 2 takes to propagate on your machine.
@@ -92,11 +89,7 @@ because the npz is committed and the 5.1 GB of recordings are not.
 
 ## Pointing the pipeline at a different recording
 
-This used to be the main thing standing between the repository and something a new person could
-use. The September notebooks spread the recording, the time window, the frame count and the
-prompt point across four cells, with the window written into cache filenames.
-
-`object_pipeline.ipynb` now holds all of it in one cell:
+`object_pipeline.ipynb` holds its whole configuration in one cell:
 
 ```python
 RECORDING  = "scoop_01"
@@ -114,11 +107,25 @@ for each.
 
 Notebooks 1, 2, 4 and 5 take a filename near the top and nothing else.
 
+### Where the twelve choices are kept
+
+Those three numbers are the only thing that differs between one run and the next, so they
+live in `tools/object_runs.csv`, one row per recording, each with a note saying what the
+prompt point sits on. `tools/run_all_objects.py` reads that file, rewrites the three lines
+in the notebook and executes it, which is how the whole set gets re-run after a change to
+the pipeline.
+
+Use the notebook to work on one recording and to read what the pipeline does, since every
+step's output sits next to the code that produced it. Use the tool to produce the set,
+since the notebook can only hold one recording's outputs at a time.
+
 ### Finding a prompt point
 
-This is the one step still done by eye. It has to be, because the automatic rule does not
-transfer. Tested on 9 October: no offset along either the wrist to palm or the palm to fingertip
-direction produced an object sized mask on any frame of `scoop_01`.
+This is the one step still done by eye, because no automatic rule has been made to work.
+Deriving the click from the hand needs the fingertips and the glasses number the 21
+landmarks without saying which are which, so the fingertips have to be inferred. Every way
+of inferring them moves as the hand opens and closes and the click then lands on a bowl
+or on the wearer's arm.
 
 What works:
 
@@ -129,6 +136,13 @@ What works:
    hundred means you hit a highlight, 20,000 means a bowl, 100,000 or more means the table
    or an arm.
 4. Then look at the outline. Area alone will not tell you the mask is on the right object.
+5. Then run the pipeline and look at `tools/check_tracking.py <recording>`, because steps 1
+   to 4 use SAM on one frame while the pipeline uses SAM 2 over the video and the two do
+   not always choose the same object from the same point. On `grip_03b` a point giving a
+   clean 7,143 pixel spoon on one frame gave the whole red bowl under the video tracker.
+
+`tools/find_prompt.py <recording>` does steps 1 to 3 by brute force and writes a ranked
+contact sheet to `cache/prompt_<recording>.png`, which leaves you steps 4 and 5.
 
 Picking the window matters as much as picking the point. Scooping spends most of its time inside
 one bowl and the carry between bowls lasts under a second. A window centred on a carry shows the
@@ -137,14 +151,33 @@ is a true result and a useless demonstration.
 
 ## Tools
 
-| Tool | What it does |
-| --- | --- |
-| `tools/check_recordings.py <files>` | Validates recordings and writes contact sheets. Run it in the lab. |
-| `tools/check_recordings.py --manifest` | Regenerates `docs/recordings.md` from what is in `recordings/`. |
-| `tools/render_object_cloud.py` | Redraws the object cloud figure from the committed npz. |
-| `tools/export_video.py` | Exports recordings to shareable mp4s in `videos/`, with timestamps burnt in. |
+| Tool                                    | What it does                                                                       | Needs recordings       |
+| --------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------- |
+| `tools/check_recordings.py <files>`     | Validates recordings and writes contact sheets. Run it in the lab.                 | yes                    |
+| `tools/check_recordings.py --manifest`  | Regenerates `docs/recordings.md` from what is in `recordings/`.                    | yes                    |
+| `tools/find_prompt.py <recording>`      | Searches a recording for usable prompt points and writes a ranked contact sheet.   | yes                    |
+| `tools/run_all_objects.py [recordings]` | Runs the object pipeline over everything in `tools/object_runs.csv`.               | yes                    |
+| `tools/check_tracking.py <recording>`   | Draws frames with the tracked mask outlined, to see what area cannot tell you.     | no, it reads the cache |
+| `tools/object_head_motion.py`           | How far the glasses moved during each pipeline window.                             | yes                    |
+| `tools/grasp_intervals.py`              | Finds when the hand closed on something and when it let go.                        | yes                    |
+| `tools/object_summary.py`               | Collects every object run into one table and one figure.                           | no                     |
+| `tools/render_object_cloud.py`          | Redraws the object cloud figures from the committed npz files.                     | no                     |
+| `tools/export_ply.py`                   | Rebuilds the PLY clouds from the same npz files. They are deliberately not in git. | no                     |
+| `tools/export_video.py`                 | Exports recordings to shareable mp4s in `videos/`, with timestamps burnt in.       | yes                    |
 
 Regenerate the manifest after adding recordings rather than editing it by hand.
+
+### The order they go in
+
+After a run of the pipeline or after changing it, this is the sequence that brings every
+derived file back into agreement:
+
+```bash
+python3 tools/run_all_objects.py     # the twelve object runs
+python3 tools/object_head_motion.py  # head travel per window, which the summary merges
+python3 tools/object_summary.py      # the table and the figure
+python3 tools/grasp_intervals.py     # grasp brackets, which read object_runs.csv
+```
 
 ## Things that will bite you
 
