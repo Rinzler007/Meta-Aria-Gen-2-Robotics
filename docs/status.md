@@ -32,10 +32,12 @@ Everything runs offline on saved files. Nothing has to run in real time.
 | SE(3) pose, objects at rest           | Working, one fixed pose each    |
 | Accuracy against known ground truth   | Not measured                    |
 
-The pipeline is `notebooks/object_pipeline.ipynb`. Given a recording, a four second window
-and one pixel coordinate on the object, it tracks it through 120 frames, computes depth from
-the two forward facing cameras, keeps the points that fall inside the object's mask and
-converts them into room coordinates. It produces the two deliverables and it has done so
+The pipeline is `notebooks/object_pipeline.ipynb`. Given a recording, a window and one
+pixel coordinate on the object, it tracks the object through every frame of that window,
+computes depth from the two forward facing cameras, keeps the points falling inside the
+object's mask then converts them into room coordinates. The windows come from the grip
+detection and run from 87 to 324 frames, covering one demonstration from grasp to
+release. It produces the two deliverables and it has done so
 for every one of the twelve October recordings without losing its object.
 
 Depth is accurate to within a centimetre over the working range. Checked against the hand
