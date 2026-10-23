@@ -49,13 +49,13 @@ having both is what lets anybody check the correction rather than take it on tru
 
 ## The point clouds
 
-`object_<recording>_clouds.npz` holds 122 arrays:
+`object_<recording>_clouds.npz` holds one array per frame plus the two trajectories:
 
 | Key                       | Shape      | Contents                                                             |
 | ------------------------- | ---------- | -------------------------------------------------------------------- |
-| `frame_000` … `frame_119` | `(N, 3)`   | The object's points for that frame, in room coordinates              |
-| `trajectory_world`        | `(120, 4)` | Frame number, then the centre in room coordinates                    |
-| `trajectory_device`       | `(120, 5)` | Frame number, the centre as the glasses see it, then the point count |
+| `frame_000` … `frame_NNN` | `(N, 3)`   | The object's points for that frame, in room coordinates              |
+| `trajectory_world`        | `(N, 4)`   | Frame number, then the centre in room coordinates                    |
+| `trajectory_device`       | `(N, 5)`   | Frame number, the centre as the glasses see it, then the point count |
 
 `N` differs from frame to frame, from a few hundred on a spoon to a couple of thousand on
 a jug, because it depends on how much of the object the two cameras could both see.
@@ -64,7 +64,7 @@ a jug, because it depends on how much of the object the two cameras could both s
 import numpy as np
 z = np.load("outputs/object_scoop_01_clouds.npz")
 frame_60 = z["frame_060"]          # (N, 3) in metres, room coordinates
-path = z["trajectory_world"][:, 1:]  # (120, 3) the trajectory on its own
+path = z["trajectory_world"][:, 1:]  # (N, 3) the trajectory on its own
 ```
 
 The PLY carries the same points with the frames concatenated, which is convenient for
@@ -89,11 +89,11 @@ It is not the whole object. The back of it never appears, because there is no de
 glasses and depth is computed by matching what the two forward facing cameras each saw.
 Neither of them can see round the back.
 
-The stack of 120 frames is therefore the object drawn 120 times over, laid out along the
-path it travelled. On `scoop_01` any single frame measures about 12 cm across, which is
-about right for the scoop end of a spoon with cereal on it, while the whole stack measures
-about 34 cm across. The extra is travel. If you want the shape of the object on its own,
-look at one frame. If you want the demonstration, you want the stack.
+The stack is therefore the object drawn once per frame, laid out along the path it
+travelled. A window holds between 87 and 324 frames depending on how long the
+demonstration ran. On `scoop_01` a single frame measures about 16 cm across while
+the whole stack measures about 60 cm. The extra is travel. Look at one frame for
+the shape of the object. Look at the stack for the demonstration.
 
 ## Across all twelve recordings
 
