@@ -8,10 +8,15 @@ hand to a robot and the wrong thing to put in front of a person. This draws it.
     python3 tools/render_pose.py                 # every recording
     python3 tools/render_pose.py pour_02         # just this one
     python3 tools/render_pose.py --row           # one row, for a slide
+    python3 tools/render_pose.py --formula       # just the algebra, drawn as a picture
 
 The default is a two by two grid, which is the shape to read on a screen or in a report.
 A slide gives you a wide strip under the text, so `--row` puts the same four panels in a
 single row and writes them beside the grid as `_pose_row.png`.
+
+`--formula` writes `outputs/se3_formula.png`, which is the matrix and the four pieces of
+algebra drawn out. A formula typed into a slide as a line of words is hard to read and easy
+to get wrong, so it is drawn here once and the slide uses the picture.
 
 What the pose is. A rigid body in a room has a position and a facing. A 4 by 4 matrix
 holds both:
@@ -53,6 +58,86 @@ import matplotlib.pyplot as plt
 
 REPO = Path(__file__).resolve().parent.parent
 OUT = REPO / "outputs"
+
+
+
+def formula(dest):
+    """Draw the algebra, so a slide can show a matrix as a matrix.
+
+    Matplotlib's maths renderer has no matrix environment, so the brackets and the blocks
+    inside them are drawn by hand. That is a few more lines here and it means the picture
+    is built by this repository like every other figure, which is the point.
+
+    The labels sit inside the cells they describe. Arrows pointing in from outside were
+    tried and they cross the brackets, which makes a picture of a matrix harder to read
+    than the matrix.
+    """
+    fig = plt.figure(figsize=(16, 5.4))
+    BLUE, RED, GREY = "#1C7293", "#B85042", "#808080"
+
+    # ---- the matrix itself, on the left -------------------------------------------
+    ax = fig.add_axes([0.02, 0.04, 0.40, 0.92])
+    ax.set_xlim(0, 10); ax.set_ylim(0, 10); ax.axis("off")
+
+    ax.text(0.5, 5.0, r"$T$", fontsize=46, va="center", ha="center")
+    ax.text(1.6, 5.0, r"$=$", fontsize=36, va="center", ha="center")
+
+    # The square brackets. Three strokes each, drawn in axis coordinates so they scale
+    # with the figure. Tying them to a font would break the moment the size changed.
+    for x, side in ((2.5, 1), (9.7, -1)):
+        ax.plot([x, x], [0.9, 9.1], color="black", lw=2.6)
+        ax.plot([x, x + 0.32 * side], [9.1, 9.1], color="black", lw=2.6)
+        ax.plot([x, x + 0.32 * side], [0.9, 0.9], color="black", lw=2.6)
+
+    # A faint rule between the blocks, which is how a 3 by 3 and a 3 by 1 are usually shown
+    # apart without claiming they are two separate matrices.
+    ax.plot([6.45, 6.45], [1.3, 8.7], color="#CCCCCC", lw=1, ls=(0, (4, 4)))
+    ax.plot([2.8, 9.4], [3.3, 3.3], color="#CCCCCC", lw=1, ls=(0, (4, 4)))
+
+    ax.text(4.6, 7.0, r"$R$", fontsize=40, va="center", ha="center", color=BLUE)
+    ax.text(4.6, 5.3, "rotation, 3 by 3\nwhich way it is turned",
+            fontsize=12, va="center", ha="center", color=BLUE)
+    ax.text(8.1, 7.0, r"$t$", fontsize=40, va="center", ha="center", color=RED)
+    ax.text(8.1, 5.3, "translation, 3 by 1\nwhere it is",
+            fontsize=12, va="center", ha="center", color=RED)
+
+    ax.text(4.6, 2.1, r"$0\;\;\;0\;\;\;0$", fontsize=26, va="center", ha="center", color=GREY)
+    ax.text(8.1, 2.1, r"$1$", fontsize=26, va="center", ha="center", color=GREY)
+    ax.text(6.3, 0.2, "the bottom row is always the same, which is what makes it 4 by 4",
+            fontsize=10.5, va="center", ha="center", color=GREY, style="italic")
+
+    # ---- what it is for, on the right ---------------------------------------------
+    ax = fig.add_axes([0.45, 0.04, 0.54, 0.92])
+    ax.set_xlim(0, 10); ax.set_ylim(0, 10); ax.axis("off")
+
+    # The description goes under its equation. Beside it, the longest equation runs into
+    # its own label.
+    # The third number is how far under its equation the description sits. A one line
+    # equation needs little room. The one carrying a fraction is twice as tall and its
+    # description has to clear the whole of it.
+    rows = [
+        (r"$p\,' = T\,p$",
+         "a point is turned and shifted in one multiplication", 0.60),
+        (r"$T_{a \rightarrow c} = T_{a \rightarrow b}\;\; T_{b \rightarrow c}$",
+         "movements chain by multiplying", 0.60),
+        (r"$T^{-1} = \left[\; R^{T}, \;\; -R^{T} t \;\right]$",
+         "undoing a movement is an inverse", 0.62),
+        (r"$T_{\mathrm{room},\,\mathrm{wrist}} = T_{\mathrm{room},\,\mathrm{device}}"
+         r"\;\; T_{\mathrm{device},\,\mathrm{wrist}}$",
+         "the hand, put into room coordinates", 0.62),
+        (r"$T_{\mathrm{rel}}(k) = T(0)^{-1}\, T(k)$",
+         "every pose measured from the window's first frame", 0.62),
+        (r"$\theta = \arccos\!\left(\frac{\mathrm{tr}\,R - 1}{2}\right)$",
+         "how far it turned, one number out of nine", 1.00),
+    ]
+    y = 9.3
+    for maths, why, drop in rows:
+        ax.text(0.1, y, maths, fontsize=19, va="center", ha="left")
+        ax.text(0.35, y - drop, why, fontsize=11.5, va="center", ha="left", color="#555555")
+        y -= 1.60
+
+    fig.savefig(dest, dpi=140, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
 
 
 def load(label):
@@ -154,9 +239,17 @@ def render(label, dest, row=False):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("only", nargs="*", help="labels to draw; default is all of them")
+    ap.add_argument("--formula", action="store_true",
+                    help="draw the algebra to outputs/se3_formula.png and stop")
     ap.add_argument("--row", action="store_true",
                     help="one row, which is the shape a slide has room for. The default is a grid")
     args = ap.parse_args()
+
+    if args.formula:
+        dest = OUT / "se3_formula.png"
+        formula(dest)
+        print(f"wrote {dest.relative_to(REPO)}")
+        return 0
 
     mine = [r.get("label") or r["recording"]
             for r in csv.DictReader((REPO / "tools" / "object_runs.csv").open())]

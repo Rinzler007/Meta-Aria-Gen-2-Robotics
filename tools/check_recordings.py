@@ -21,6 +21,7 @@ warnings on perfectly good recordings and a tool that cries wolf gets ignored.
 """
 
 import argparse
+import csv
 import re
 import sys
 from pathlib import Path
@@ -338,8 +339,16 @@ def manifest(repo, dest):
     # renders a ragged table perfectly well, so why bother ? Because this file is read as
     # plain text at least as often as it is rendered, and because an unpadded regeneration
     # of a padded file rewrites every row and buries the one line that actually changed.
+    # The Drive links live in their own file so that a link can be added or corrected
+    # without touching this code, and so the slide table and this manifest read the same
+    # list. A recording with no link gets an empty cell. A broken link would be worse.
+    links = {}
+    link_file = rec_dir.parent / "tools" / "video_links.csv"
+    if link_file.exists():
+        links = {r["recording"]: r["url"] for r in csv.DictReader(link_file.open())}
+
     table = [["Recording", "Task", "Duration", "Acting hand", "Hand tracking",
-              "Pose", "Head", "Status"]]
+              "Pose", "Head", "Status", "Video"]]
 
     notes = []
     for f in files:
@@ -379,8 +388,10 @@ def manifest(repo, dest):
             problems = verdict(m)
             status = "usable" if not problems else "check: " + "; ".join(problems)
 
+        url = links.get(stem, "")
         table.append([f"`{f.name}`", task, f"{m['duration_s']:.1f} s", a or "-",
-                      hand_txt, pose_txt, head_txt, status])
+                      hand_txt, pose_txt, head_txt, status,
+                      f"[watch]({url})" if url else "-"])
         print(f"  measured {f.name}")
 
     # Each column is as wide as its widest cell, so every pipe lines up down the page.
@@ -417,6 +428,9 @@ def manifest(repo, dest):
         "**Head** is how far the glasses themselves travelled. It separates working at a "
         "bench from walking across a room and that matters because a wrist path spanning "
         "metres is the wearer walking about. Reaching never spans that far.",
+        "",
+        "**Video** links the mp4 export on Drive. The links come from "
+        "`tools/video_links.csv`, which is also what the weekly slides read.",
         "",
     ]
 

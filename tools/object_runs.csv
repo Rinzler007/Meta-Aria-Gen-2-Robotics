@@ -9,6 +9,6 @@ pick_01,,1.86,4.50,1103,774,"tin held in the right hand before it is carried acr
 pick_02,,5.23,2.93,1223,817,soup tin held up in the right hand. Same area fall as pick_01
 pick_03,,3.89,3.93,1144,865,soup tin held up in the right hand
 grip_01,,2.55,10.83,1145,706,spoon lying in the red bowl just before it is lifted across
-grip_02,,3.36,8.00,1063,712,"spoon lying in the blue bowl. The spoon is partly buried in cereal here so the cloud is thin. A window at 7.02 over the carry looks better by every number and tracks the cereal instead of the spoon, so check the frames before moving it"
+grip_02,,3.36,8.00,1063,712,"spoon lying in the blue bowl. The spoon is partly buried in cereal here so the cloud is thin. A window at 7.02 over the carry looks better by every number and tracks the cereal and not the spoon, so check the frames before moving it"
 grip_03b,,4.86,11.34,1036,761,"spoon lying in the blue bowl, partly buried in cereal so the cloud is thin. A window at 13.93 looks clean under find_prompt and gives the whole red bowl under the video tracker"
 scoop_01,scoop_01_bowl,7.6,4.0,1112,749,"the red bowl, which never moves. A static object is the error bar for the moving ones, since whatever pose change it shows is error"
