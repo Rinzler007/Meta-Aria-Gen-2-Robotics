@@ -7,6 +7,11 @@ hand to a robot and the wrong thing to put in front of a person. This draws it.
 
     python3 tools/render_pose.py                 # every recording
     python3 tools/render_pose.py pour_02         # just this one
+    python3 tools/render_pose.py --row           # one row, for a slide
+
+The default is a two by two grid, which is the shape to read on a screen or in a report.
+A slide gives you a wide strip under the text, so `--row` puts the same four panels in a
+single row and writes them beside the grid as `_pose_row.png`.
 
 What the pose is. A rigid body in a room has a position and a facing. A 4 by 4 matrix
 holds both:
@@ -77,7 +82,7 @@ def matrix_text(T_rot, T_pos):
     return "\n".join(lines)
 
 
-def render(label, dest):
+def render(label, dest, row=False):
     got = load(label)
     if got is None:
         return None
@@ -87,8 +92,12 @@ def render(label, dest):
     # metres put every interesting number three decimal places down.
     pc = p * 100
 
-    fig, grid = plt.subplots(2, 2, figsize=(13, 9))
-    axes = grid.ravel()
+    # Two by two to read on a screen. One row when it has to sit under the text on a slide.
+    if row:
+        fig, axes = plt.subplots(1, 4, figsize=(22, 4.8))
+    else:
+        fig, grid = plt.subplots(2, 2, figsize=(13, 9))
+        axes = grid.ravel()
 
     # --- how far it has turned ---------------------------------------------------------
     ax = axes[0]
@@ -145,6 +154,8 @@ def render(label, dest):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("only", nargs="*", help="labels to draw; default is all of them")
+    ap.add_argument("--row", action="store_true",
+                    help="one row instead of a grid, which is the shape a slide has room for")
     args = ap.parse_args()
 
     mine = [r.get("label") or r["recording"]
@@ -154,8 +165,9 @@ def main():
     for label in mine:
         if args.only and label not in args.only:
             continue
-        dest = OUT / f"object_{label}_pose.png"
-        got = render(label, dest)
+        dest = OUT / (f"object_{label}_pose_row.png" if args.row
+                      else f"object_{label}_pose.png")
+        got = render(label, dest, row=args.row)
         if got is None:
             print(f"{label:<16} no pose file, run tools/object_pose.py first")
             continue

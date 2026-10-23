@@ -11,6 +11,11 @@ They are two separate deliverables and this draws them separately.
 
     python3 tools/render_object_cloud.py                 # every object run
     python3 tools/render_object_cloud.py pick_02 pour_01 # just these
+    python3 tools/render_object_cloud.py --row           # one row, for a slide
+
+The default is a two by two grid, which is the shape to read on a screen or in a report.
+A slide gives you a wide strip under the text and nothing else, so `--row` puts the same
+four panels in a single row and writes them beside the grid as `_cloud_row.png`.
 
 The four panels.
 
@@ -82,7 +87,7 @@ def frame_to_show(clouds, keys):
     return keys[int(np.argmax(sizes))], max(sizes)
 
 
-def render(label, dest):
+def render(label, dest, row=False):
     """Draw the four panels for one object run. Returns what was measured, for printing."""
     npz = OUT / f"object_{label}_clouds.npz"
     traj_csv = OUT / f"object_{label}_trajectory.csv"
@@ -111,10 +116,13 @@ def render(label, dest):
     obj = (model - np.median(model, axis=0)) * 100
     way = (path - path[0]) * 100
 
-    # Two by two. Four panels in a row leaves each one too small to read on a slide, which
-    # is where these end up.
-    fig, grid = plt.subplots(2, 2, figsize=(13, 10.5))
-    axes = grid.ravel()
+    # Two by two to read on a screen. A slide leaves a wide strip under the text and
+    # nothing else, so that case gets one row instead.
+    if row:
+        fig, axes = plt.subplots(1, 4, figsize=(22, 5.0))
+    else:
+        fig, grid = plt.subplots(2, 2, figsize=(13, 10.5))
+        axes = grid.ravel()
 
     # --- one frame -------------------------------------------------------------------
     ax = axes[0]
@@ -179,8 +187,9 @@ def render(label, dest):
     cb = fig.colorbar(sc, ax=axes[2], fraction=0.045, pad=0.02)
     cb.set_label("seconds")
 
-    fig.suptitle(f"{label}:  top row is the object, bottom row is where it went",
-                 fontsize=13, y=0.99)
+    # The caption has to describe the layout it is actually drawn in.
+    where = "the object, then where it went" if row else "top row is the object, bottom row is where it went"
+    fig.suptitle(f"{label}:  {where}", fontsize=13, y=0.99)
     fig.tight_layout()
     # Saved before anything can close the figure. Calling show() first closes it and a
     # savefig afterwards writes a blank white image, which has caught this project out.
@@ -194,6 +203,8 @@ def render(label, dest):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("only", nargs="*", help="labels to draw; default is all of them")
+    ap.add_argument("--row", action="store_true",
+                    help="one row instead of a grid, which is the shape a slide has room for")
     args = ap.parse_args()
 
     found = sorted(OUT.glob("object_*_clouds.npz"))
@@ -212,8 +223,9 @@ def main():
         # demonstrations, so they stay out of our figures unless they are asked for by name.
         if not args.only and label not in mine:
             continue
-        dest = OUT / f"object_{label}_cloud.png"
-        got = render(label, dest)
+        dest = OUT / (f"object_{label}_cloud_row.png" if args.row
+                      else f"object_{label}_cloud.png")
+        got = render(label, dest, row=args.row)
         if got is None:
             print(f"{label:<16} needs tools/object_pose.py to have run, skipped")
             continue

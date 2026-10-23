@@ -118,3 +118,14 @@ reference/*.json
 # Downloaded pilot sequences. Each is about 2.3 GB and comes back from the manifest on
 # demand, so there is no reason to carry one in git.
 reference/pilot_*/
+
+# The weekly slide decks. They are merged into the class deck, which lives in Downloads,
+# so the copy that matters is never this one. The weekly .docx reports stay in reports/
+# because those are ours alone.
+reports/*.pptx
+
+# The row versions of the figures. They hold the same four panels as the committed grid
+# figure, laid out as a wide strip because that is the shape a slide leaves under the text.
+# Only whichever recording goes on a slide needs one, and --row rebuilds any of them from
+# the committed clouds in a second, so carrying thirteen of them would be clutter.
+outputs/*_row.png
