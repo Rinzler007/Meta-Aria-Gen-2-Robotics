@@ -15,13 +15,14 @@ Everything described here lives in `outputs/` and is produced by
 | `object_<recording>_trajectory.csv`  | The object centre, frame by frame, in both frames of reference                                     |
 | `object_<recording>_clouds.npz`      | The same trajectory plus the per frame point clouds                                                |
 | `object_<recording>_cloud_world.ply` | Every point from every frame, stacked, as a plain ASCII PLY. Not in git: run `tools/export_ply.py` |
-| `object_<recording>_cloud.png`       | A render of that cloud from three angles, coloured by time                                         |
+| `object_<recording>_cloud.png`       | Four panels: one frame, the object pooled, the path from above and the height            |
 
-Three more files follow from those, written by the tools in step 7 of `docs/running.md`:
+Four more files follow from those, written by the tools in step 7 of `docs/running.md`:
 
 | | |
 | ------------------------------------- | ------------------------------------------------------------------------- |
 | `object_<recording>_pose.csv`          | The 4 by 4 pose per frame, relative to the window's first frame            |
+| `object_<recording>_pose.png`          | The turn angle, the axis, the translation and three of the matrices        |
 | `object_<recording>_model.npz`         | Every frame pooled into the object's own frame, so the path falls away     |
 | `object_<recording>_model_refined.npz` | The same with each frame fitted to the model, written where it is narrower |
 
@@ -91,30 +92,32 @@ npz files, on a fresh clone with no recordings:
 python3 tools/export_ply.py
 ```
 
-## What one frame is and what the stack is
+## How to read the figure
 
-This is the one thing that reliably misleads people looking at the render, so it is worth
-being plain about.
+`object_<recording>_cloud.png` has four panels and they answer two different questions. The
+top row is the object. The bottom row is where it went. Keeping them apart is the whole
+point, because an earlier version of this figure drew every frame's points at the position
+the object occupied in that frame. A hundred and twenty copies of a soup tin laid along its
+path makes a smear in which neither the tin nor the path can be seen.
 
-A single frame holds the surface of the object that both cameras could see at that instant.
-It is not the whole object. The back of it never appears, because there is no depth sensor on these
-glasses and depth is computed by matching what the two forward facing cameras each saw.
-Neither of them can see round the back.
+**One frame** is the surface both cameras could see at a single instant. It is thin and it
+is only ever one side. There is no depth sensor on these glasses and depth comes from
+matching what the two forward cameras each saw, so neither can see round the back. A spoon
+gives a few hundred points in a frame and a jug a few thousand.
 
-The stack is therefore the object drawn once per frame, laid out along the path it
-travelled. A window holds between 87 and 324 frames depending on how long the
-demonstration ran. On `scoop_01` a single frame measures about 16 cm across while
-the whole stack measures about 60 cm. The extra is travel. Look at one frame for
-the shape of the object. Look at the stack for the demonstration.
+**The object** is every frame carried back into the object's own frame, where the object
+stands still and the path falls away. It is drawn as a density, since a hundred thousand
+dots at any readable size paint a solid block. The dark core is the object. The pale halo
+is stereo noise, which throws a few points a long way out of every one of these clouds, and
+that halo is where the haze in the picture comes from.
 
-### The model is the third thing
+**The path from above** and **the height against time** are the trajectory, drawn with no
+surface points at all so the line is the only thing to read. The start is a circle and the
+finish is a cross.
 
-`tools/object_model.py` carries every frame's points back into the object's own frame,
-where the object stands still and the path falls away. What is left is the object seen from
-every angle the demonstration happened to show, pooled into one cloud. It writes
-`object_<label>_model.npz`.
+### What the object comes out as
 
-| Object | Stack | Model |
+| Object | Stack, the object and its journey together | Pooled into the object's frame |
 | --- | --- | --- |
 | Spoons | 34 to 43 cm | 12 to 20 cm |
 | Soup tins | 56 to 77 cm | 14 to 16 cm |
@@ -128,6 +131,48 @@ other. `tools/object_model_refine.py` fits each frame to the model built so far 
 about 9 cm off two of the three. They are still too wide.
 
 The bowl barely changes because it never moves, so its stack was already the object.
+
+## The SE(3) pose
+
+`object_<recording>_pose.csv` holds one 4 by 4 matrix per frame:
+
+    T = [ R  t ]      R is 3 by 3, which way the object is turned
+        [ 0  1 ]      t is 3 by 1, where the object is
+
+Writing a point as four numbers ending in 1 makes the turn and the shift a single
+multiplication, `p' = T p`. A chain of movements is then a product of matrices and undoing
+one is an inverse, which is how a measurement moves between frames of reference.
+
+| Column | Meaning |
+| --- | --- |
+| `frame`, `time_s` | Which frame it is and when it happened |
+| `turned_deg` | How far the object has turned since the first frame |
+| `axis_x`, `axis_y`, `axis_z` | The axis it turned about, as a unit vector |
+| `grip_wander_cm` | How far the object drifts inside the hand's frame across the window |
+| `m00` … `m23` | The top three rows of T, read across. The fourth row is always 0 0 0 1 |
+
+Every pose is relative to the window's first frame, so row zero is the identity with no
+translation. `object_<recording>_pose.png` draws the angle, the axis, the translation and
+three of the matrices themselves.
+
+To check that these really are rigid body transforms:
+
+```bash
+python3 tools/object_pose.py --check
+```
+
+It reads the committed pose files and tests, on all 1,560 frames, that `R R^T = I`, that
+`det R = +1`, that `T(0) = I`, that the angle column matches `arccos((tr R - 1)/2)`, that
+the axis is a unit vector, that `T^-1 = [R^T, -R^T t]` undoes `T`, that
+`T(a->b) T(b->c) = T(a->c)` and that conjugating a rotation leaves its angle alone. Every
+one holds to the precision the csv stores.
+
+That last one is the argument the pose rests on. While the object is gripped it sits at
+some fixed offset `X` from the wrist that nobody can measure, so the object's movement is
+`X^-1` times the wrist's movement times `X`. Conjugating leaves the trace alone, so it
+leaves the angle alone. The object therefore turns by exactly the same angle as the
+wrist whatever `X` happens to be. That is what makes the wrist's rotation worth reporting
+as the object's.
 
 ## Across all twelve recordings
 

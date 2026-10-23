@@ -170,7 +170,9 @@ is a true result and a useless demonstration.
 | `tools/repeatability.py`                | Whether the three takes of a task give the same measurement.                       | no                     |
 | `tools/auto_window.py`                  | Proposes each window from the grip detection.                                       | no                     |
 | `tools/object_pose.py`                  | The object's pose per frame, as a 4 by 4 matrix.                                   | yes                    |
-| `tools/render_object_cloud.py`          | Redraws the object cloud figures from the committed npz files.                     | no                     |
+| `tools/object_pose.py --check`          | Verifies the written poses really are SE(3) and prints the algebra behind them.    | no                     |
+| `tools/render_pose.py`                  | Draws the turn angle, the axis, the translation and three of the matrices.         | no                     |
+| `tools/render_object_cloud.py`          | Draws the object and its path, four panels per recording.                          | no                     |
 | `tools/export_ply.py`                   | Rebuilds the PLY clouds from the same npz files. They are deliberately not in git. | no                     |
 | `tools/export_video.py`                 | Exports recordings to shareable mp4s in `videos/`, with timestamps burnt in.       | yes                    |
 
@@ -258,14 +260,23 @@ python3 tools/object_head_motion.py   # head travel per window
 python3 tools/object_model.py         # one model of the object from every frame
 python3 tools/object_model_refine.py  # the same, with each frame fitted to the model
 python3 tools/grip_from_object.py     # when the hand touched the object
+python3 tools/render_object_cloud.py  # the object and its path, four panels each
+python3 tools/render_pose.py          # the pose, four panels each
 python3 tools/object_summary.py       # all runs in one table and figure
 python3 tools/repeatability.py        # whether the three takes of a task agree
 python3 tools/export_ply.py           # the PLY clouds, which are not in git
 ```
 
-In that order. `object_pose.py` has to come before either model tool, since both undo the
-pose it writes. `object_summary.py` picks up the head motion if it is there. The summary is
-what `repeatability.py` reads.
+In that order. `object_pose.py` has to come before either model tool and before
+`render_object_cloud.py`, since all three undo the pose it writes. `object_summary.py`
+picks up the head motion if it is there. The summary is what `repeatability.py` reads.
+
+Then check the poses really are rigid body transforms, which reads the files just written
+and needs no recordings:
+
+```bash
+python3 tools/object_pose.py --check
+```
 
 **8. Check the parts that can be checked against outside labels.**
 

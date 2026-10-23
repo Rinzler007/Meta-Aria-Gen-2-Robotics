@@ -32,6 +32,7 @@ three ways.
 | Frames with a 3D position | 2,789 |
 | Points per object | 63,889 to 555,816 |
 | Hand movement, room against glasses | 1.41 times, range 1.26 to 1.78 |
+| SE(3) pose, every property verified | 1,560 frames, `tools/object_pose.py --check` |
 | Contact found from the object | 97 to 100% of frames on the six carried objects |
 | The same, scored on an outside recording | 67.2% agreement, 93.8% of their frames caught |
 | Position error, measured on a still object | 6.1 cm box |

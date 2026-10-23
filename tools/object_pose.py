@@ -146,12 +146,171 @@ def wrist_poses(vrs, t_from, t_to, side="right"):
     return ts, poses
 
 
+
+def check(labels):
+    """Verify that what we wrote is really SE(3), using the files we wrote.
+
+    Everything here is a property a rigid body transform has to have. The point of running
+    them against the committed pose files is that none of it is asserted. If the pipeline
+    produced something that was not a rotation, these numbers would say so.
+    """
+    print("A rigid body transform is written as a 4 by 4 matrix")
+    print()
+    print("    T = [ R  t ]      R is 3 by 3, which way the object is turned")
+    print("        [ 0  1 ]      t is 3 by 1, where the object is")
+    print()
+    print("Writing a point as four numbers ending in 1 makes the turn and the shift one")
+    print("multiplication, p' = T p. A chain of movements is then a product of matrices")
+    print("and undoing one is an inverse, which is how a measurement moves between frames.")
+    print()
+    print("What has to be true, checked on every frame of every pose file:")
+    print()
+
+    worst = {k: 0.0 for k in
+             ("orthogonal", "determinant", "first frame", "angle", "axis length",
+              "inverse", "composition", "conjugation")}
+    frames = 0
+    rng = np.random.default_rng(0)
+
+    for name in labels:
+        f = OUT / f"object_{name}_pose.csv"
+        if not f.exists():
+            continue
+        rows = list(csv.DictReader(f.open()))
+        mats = []
+        for row in rows:
+            m = np.array([float(row[f"m{i}{j}"]) for i in range(3) for j in range(4)]
+                         ).reshape(3, 4)
+            mats.append((m[:, :3], m[:, 3], float(row["turned_deg"]),
+                         [row[f"axis_{a}"] for a in "xyz"]))
+        frames += len(mats)
+
+        # A fixed transform to conjugate by. It stands in for the unknown offset X between
+        # the wrist and the object, which is the thing nobody can measure.
+        ax = rng.normal(size=3)
+        ax /= np.linalg.norm(ax)
+        K = np.array([[0, -ax[2], ax[1]], [ax[2], 0, -ax[0]], [-ax[1], ax[0], 0]])
+        # Rodrigues at 37 degrees, an arbitrary angle picked so the test is not accidentally
+        # passing because the conjugating rotation was near the identity.
+        th = np.radians(37.0)
+        X = np.eye(3) + np.sin(th) * K + (1 - np.cos(th)) * (K @ K)
+
+        for k, (R, t, deg, axis_txt) in enumerate(mats):
+            # R R^T = I. A rotation preserves every length and every angle, which is the
+            # same as saying its transpose undoes it.
+            worst["orthogonal"] = max(worst["orthogonal"],
+                                      float(np.abs(R @ R.T - np.eye(3)).max()))
+            # det R = +1. An orthogonal matrix with determinant minus one is a reflection,
+            # which preserves lengths too and turns a left hand into a right hand. No
+            # physical movement does that.
+            worst["determinant"] = max(worst["determinant"],
+                                       abs(float(np.linalg.det(R)) - 1.0))
+            # The pose is relative to the window's first frame, so frame zero has to be
+            # exactly the identity with no translation.
+            if k == 0:
+                worst["first frame"] = max(
+                    worst["first frame"],
+                    float(np.abs(np.hstack([R, t[:, None]])
+                                 - np.hstack([np.eye(3), np.zeros((3, 1))])).max()))
+            # The trace of a rotation is 1 + 2 cos(theta), so one number out of nine gives
+            # the angle. This checks the column we wrote against the matrix we wrote.
+            worst["angle"] = max(worst["angle"], abs(turn_degrees(R) - deg))
+            # The axis is a unit vector wherever it is defined at all.
+            if all(axis_txt):
+                v = np.array([float(a) for a in axis_txt])
+                worst["axis length"] = max(worst["axis length"],
+                                           abs(float(np.linalg.norm(v)) - 1.0))
+            # The inverse in closed form. Undoing a rigid movement means turning back and
+            # then shifting back. The shift has to be turned back too, which is why the
+            # translation of the inverse is minus R transpose times t.
+            Ri, ti = R.T, -R.T @ t
+            back_R = Ri @ R
+            back_t = Ri @ t + ti
+            worst["inverse"] = max(worst["inverse"],
+                                   float(np.abs(back_R - np.eye(3)).max()),
+                                   float(np.abs(back_t).max()))
+
+        # Composition. The movement from frame a to frame b is T(a) inverse times T(b), and
+        # going a to b then b to c has to equal going a to c. This is the property that lets
+        # poses chain at all, so it is worth testing on the real matrices.
+        if len(mats) >= 3:
+            for _ in range(20):
+                i, j, k = sorted(rng.choice(len(mats), 3, replace=False))
+                def rel(u, v):
+                    Ru, tu = mats[u][0], mats[u][1]
+                    Rv, tv = mats[v][0], mats[v][1]
+                    return Ru.T @ Rv, Ru.T @ (tv - tu)
+                R1, t1 = rel(i, j)
+                R2, t2 = rel(j, k)
+                R3, t3 = rel(i, k)
+                worst["composition"] = max(
+                    worst["composition"],
+                    float(np.abs(R1 @ R2 - R3).max()),
+                    float(np.abs(R1 @ t2 + t1 - t3).max()))
+
+        # Conjugation preserves the angle. This is the argument the whole pose rests on.
+        # While the object is gripped it sits at some fixed offset X from the wrist that
+        # nobody knows, so the object's movement is X inverse times the wrist's movement
+        # times X. Conjugating leaves the trace alone, so it leaves the angle alone, and
+        # the object therefore turns by exactly the same angle as the wrist however X is
+        # chosen. That is what makes the wrist's rotation worth reporting as the object's.
+        for R, t, deg, _ in mats:
+            worst["conjugation"] = max(worst["conjugation"],
+                                       abs(turn_degrees(X.T @ R @ X) - turn_degrees(R)))
+
+    if not frames:
+        print("no pose files found, run this tool without --check first")
+        return 1
+
+    # Each property is judged against what the file it was read from can actually hold.
+    # The matrix is stored to six decimal places, so a quantity built from several of its
+    # entries cannot come out better than about 1e-5 however correct the maths is. The
+    # angle column is stored to two decimal places, so half of the last place, 0.005 of a
+    # degree, is the floor there. Comparing everything against one tight number would fail
+    # the angle check on the precision of the csv and call it a mistake in the algebra.
+    lines = [
+        ("orthogonal", "R R^T = I", 1e-5, "a rotation preserves every length and angle"),
+        ("determinant", "det R = +1", 1e-5, "a reflection is not a movement"),
+        ("first frame", "T(0) = I", 1e-9, "the pose is relative to the first frame"),
+        ("angle", "theta = arccos((tr R - 1)/2)", 6e-3, "the angle column matches the matrix"),
+        ("axis length", "|axis| = 1", 1e-4, "the axis is a direction"),
+        ("inverse", "T^-1 T = I, T^-1 = [R^T, -R^T t]", 1e-5, "undoing a movement"),
+        ("composition", "T(a->b) T(b->c) = T(a->c)", 1e-5, "movements chain by multiplying"),
+        ("conjugation", "angle(X^-1 R X) = angle(R)", 1e-4, "the object turns as far as the wrist"),
+    ]
+    print(f"{'property':<36} {'worst':>10} {'allowed':>10}       why it matters")
+    failed = []
+    for key, formula, tol, why in lines:
+        ok = worst[key] <= tol
+        if not ok:
+            failed.append(formula)
+        print(f"{formula:<36} {worst[key]:10.1e} {tol:10.0e}  {'ok ' if ok else 'FAIL'}  {why}")
+
+    n_files = sum(1 for n in labels if (OUT / f"object_{n}_pose.csv").exists())
+    print()
+    print(f"checked {frames} frames across {n_files} recordings")
+    if failed:
+        print("these did not hold: " + ", ".join(failed))
+        return 1
+    print("Every property holds to the precision the csv stores. Nothing here is asserted.")
+    print("The matrix is written to six decimal places and the angle column to two, which")
+    print("is what sets the numbers in the allowed column.")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("only", nargs="*")
+    ap.add_argument("--check", action="store_true",
+                    help="verify the written poses really are SE(3) and print the algebra")
     a = ap.parse_args()
 
     runs = list(csv.DictReader(RUNS.open()))
+
+    if a.check:
+        names = [r.get("label") or r["recording"] for r in runs]
+        return check([n for n in names if not a.only or n in a.only])
+
     done = 0
     for r in runs:
         # A row may name its outputs separately from the recording it reads, which is how
