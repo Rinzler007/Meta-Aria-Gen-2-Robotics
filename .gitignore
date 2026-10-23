@@ -97,8 +97,22 @@ env/
 # they are a tenth of the size and GitHub shows them without anything being downloaded.
 outputs/*.ply
 
-# The pilot dataset manifest. We never used that dataset, so the list of download URLs
-# is somebody else index rather than a record of our work.
+# The pooled object models. Same argument as the PLY files above. Every point in one is
+# already in the matching outputs/object_*_clouds.npz, moved into the object's frame, and
+# tools/object_model.py plus tools/object_model_refine.py rebuild the whole set from the
+# committed clouds in a few seconds. Carrying them would add 27 MB of points we already
+# have and a fresh copy of all of them every time the pose changes.
+outputs/*_model.npz
+outputs/*_model_refined.npz
+
+# What our pipeline reconstructed from Meta's Pilot Dataset recording. The points come out
+# of their licensed data. tools/pilot_runs.csv rebuilds the whole run from a sequence you
+# download yourself. The scored comparison stays in git, since that file holds our own
+# measurement of how well we agreed with them.
+outputs/object_cook0_*
+
+# The pilot dataset manifest. The list of download URLs is somebody else's index. It
+# records nothing about our work and the links are signed and expire anyway.
 reference/*.json
 
 # Downloaded pilot sequences. Each is about 2.3 GB and comes back from the manifest on

@@ -17,6 +17,18 @@ Everything described here lives in `outputs/` and is produced by
 | `object_<recording>_cloud_world.ply` | Every point from every frame, stacked, as a plain ASCII PLY. Not in git: run `tools/export_ply.py` |
 | `object_<recording>_cloud.png`       | A render of that cloud from three angles, coloured by time                                         |
 
+Three more files follow from those, written by the tools in step 7 of `docs/running.md`:
+
+| | |
+| ------------------------------------- | ------------------------------------------------------------------------- |
+| `object_<recording>_pose.csv`          | The 4 by 4 pose per frame, relative to the window's first frame            |
+| `object_<recording>_model.npz`         | Every frame pooled into the object's own frame, so the path falls away     |
+| `object_<recording>_model_refined.npz` | The same with each frame fitted to the model, written where it is narrower |
+
+The two model files are not in git, for the same reason the PLY clouds are not. Every point
+in one is already in the matching `_clouds.npz` and the two tools rebuild the whole set
+from those in a few seconds.
+
 Distances are in metres everywhere except the PNG, which is labelled in centimetres
 because that is easier to read off a figure.
 
@@ -94,6 +106,28 @@ travelled. A window holds between 87 and 324 frames depending on how long the
 demonstration ran. On `scoop_01` a single frame measures about 16 cm across while
 the whole stack measures about 60 cm. The extra is travel. Look at one frame for
 the shape of the object. Look at the stack for the demonstration.
+
+### The model is the third thing
+
+`tools/object_model.py` carries every frame's points back into the object's own frame,
+where the object stands still and the path falls away. What is left is the object seen from
+every angle the demonstration happened to show, pooled into one cloud. It writes
+`object_<label>_model.npz`.
+
+| Object | Stack | Model |
+| --- | --- | --- |
+| Spoons | 34 to 43 cm | 12 to 20 cm |
+| Soup tins | 56 to 77 cm | 14 to 16 cm |
+| Red bowl, which never moves | 25 cm | 24 cm |
+| Jugs | 54 to 60 cm | 45 to 52 cm |
+
+The first three are the right sizes for those objects. The jugs are two to three times too
+wide, because a jug turns more than anything else here while being carried and the rotation
+comes from the wrist, which is too rough to lay two views of a surface on top of each
+other. `tools/object_model_refine.py` fits each frame to the model built so far and takes
+about 9 cm off two of the three. They are still too wide.
+
+The bowl barely changes because it never moves, so its stack was already the object.
 
 ## Across all twelve recordings
 

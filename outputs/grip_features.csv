@@ -1,0 +1,15 @@
+feature,separation_pct,note
+"flatness, smallest spread over the total",50.0,lower when holding
+smallest spread over the largest,51.0,
+middle spread over the largest,52.7,
+mean distance from the middle,57.2,
+largest distance from the middle,53.4,
+spread of those distances,54.6,
+how wide the hand reaches,55.0,
+volume the landmarks fill,58.5,
+thumb tip to index tip,54.4,
+thumb tip to little finger tip,54.1,
+wrist to index tip,55.9,
+wrist to middle finger tip,57.4,
+"all twelve together, fitted half",59.1,memorised
+"all twelve together, held-out half",50.5,the honest number

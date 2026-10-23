@@ -25,12 +25,13 @@ Everything runs offline on saved files. Nothing has to run in real time.
 | Object trajectory in room coordinates | Working, 12 of 12 recordings    |
 | Object point cloud                    | Working, 12 of 12 recordings    |
 | Hand path in room coordinates         | Working, 12 of 12 recordings    |
-| Finding when the object is held       | Working on 8 of 12              |
+| Finding when the hand touches the object | From the object, 67.2% on an outside recording |
 | Choosing the window                   | Automatic, applied to all 12    |
 | Choosing which object to track        | Manual, one coordinate typed in |
 | SE(3) pose, objects being carried     | Working, 12 of 12 recordings    |
 | SE(3) pose, objects at rest           | Working, one fixed pose each    |
-| Accuracy against known ground truth   | Not measured                    |
+| One model of the object from many views | Working, 13 of 13 windows     |
+| Accuracy against known ground truth   | Grip and prompt checked, poses not |
 
 The pipeline is `notebooks/object_pipeline.ipynb`. Given a recording, a window and one
 pixel coordinate on the object, it tracks the object through every frame of that window,
@@ -73,39 +74,71 @@ hand holding it. And 39 per cent is about seventy per cent of what is reachable,
 the hand's own middle only lands on the labelled hand 56 per cent of the time. Hand
 tracking and labels disagree. A hand is often half hidden behind what it holds.
 
-Missing two frames in three is not good enough to drop a person from the loop.
+Where the wearer is looking improves on that. `tools/gaze_prompt.py` scores gaze rules the
+same way on the same labels. Gaze on its own is poor: the pixel where the eyes converge
+lands on the object 14.9 per cent of the time and pushing the direction out to any fixed
+distance leaves it at 15. People do not look at the middle of the thing in their hand.
 
-**The point cloud is a stack of partial surfaces for anything carried.** Each frame holds
-the side of the object the cameras could see, so the shape of the thing and the path it
-took sit tangled in the same file. `tools/object_model.py` separates them by carrying every
-frame's points back into the object's own frame.
+Gaze together with the hand is the best rule the project has. Starting at the middle of the
+hand and stepping a short way towards where the eyes are looking lands on the object 46.3
+per cent of the time, against 39.6 per cent for the hand alone scored on the same 1,135
+frames. The ceiling on those frames is 54 per cent, so the gaze rule reaches 86 per cent of
+what is available where the hand alone reaches 73. A small step is what works. Four
+centimetres scores 45.5 per cent and eight scores 39.6, so the gaze gives the direction the
+object lies in without giving the distance.
 
-It works where the pose is solid and fails where it is not. A resting object has one
-constant pose, so the bowl in `scoop_01` narrows from 52.5cm to 24.7cm, which is the
-bowl itself. Every carried object comes out wider pooled than stacked, so the tool measures
-each one and keeps only those that genuinely improve. It currently keeps 3 of 13.
+Missing more than half the frames is still not good enough to drop a person from the loop.
 
-The rotation is what breaks it. Taking only the path out barely moves the width. Taking the
-turning out as well roughly doubles it. The rotation comes from the wrist, which is right
-about how far the object turned while being too rough to line surfaces up. The grip check
-in `tools/object_pose.py` shows the object sliding 1.5 to 5 cm inside the hand across a
-window. At the 15 cm or so between wrist and object that is around 20 degrees of error.
+**The jugs are the weak case for the object model.** Each frame holds the side of the
+object the cameras could see, so the shape of the thing and the path it took sit tangled in
+the same file. `tools/object_model.py` separates them by carrying every frame's points back
+into the object's own frame and it now does that for all thirteen windows. A spoon comes
+out 12 to 20 cm across, a soup tin 14 to 16 and the red bowl 24, against stacks of 25 to
+93 cm. Those are the right sizes for those objects.
 
-Getting this to work on carried objects needs the object's rotation from the object itself,
-which registering frame to frame does not provide on this data.
+A jug comes out 45 to 52 cm, which is two to three times what a jug measures. The jug is
+the object that turns most while it is carried, so it is the one most exposed to the
+rotation being rough. The rotation comes from the wrist, which is right about how far the
+object turned while being too rough to lay two views of a surface on top of each other. The
+grip check in `tools/object_pose.py` shows the object sliding 1.5 to 5 cm inside the hand
+across a window and at the 15 cm or so between wrist and object that is around 20 degrees.
 
-**The grip detection does not generalise.** It was checked against Meta's Aria Gen 2 Pilot
-Dataset, recorded on the same glasses by somebody else, whose labels mark a held object
-frame by frame. On their `cook_0` sequence our detection agrees 46.9 per cent of the time
-while marking 49 per cent of the recording against their 42 per cent. That is guessing. The
-left hand gives 47.5 per cent.
+`tools/object_model_refine.py` corrects each frame against the model built so far, which
+brings `pour_02` from 46.5 cm to 37.6 and `pour_03` from 52.1 to 43.7. It changes the
+spoons and the tins by a centimetre either way, so the wrist rotation was already good
+enough for them. The jugs are still too wide, so this is improved and not finished.
 
-The signal is weaker there, separating by 0.056 against 0.073 to 0.144 on our recordings.
-It comes out as 85 stretches where ours each give one. The method was built on twelve
-deliberate bench tasks where an object is picked up, carried and set down. Continuous two
-handed cooking defeats it. `tools/check_against_pilot.py` runs the comparison.
+**Grip detection from the hand's shape does not generalise and it has been replaced.** It
+was checked against Meta's Aria Gen 2 Pilot Dataset, recorded on the same glasses by
+somebody else, whose labels mark a held object frame by frame. On their `cook_0` sequence
+it agrees 46.9 per cent of the time while marking 49 per cent of the recording against
+their 42. That is guessing. `tools/check_against_pilot.py` runs that comparison.
 
-So the 91 per cent agreement it scores at home is agreement with our own bench tasks.
+The problem is not the particular number we read off the hand. `tools/grip_features.py`
+scores twelve different things you can measure on 21 landmarks and none clears 59 per cent.
+Fitting all twelve together reaches 59.1 per cent on the half of the recording it was
+fitted on and 50.5 per cent on the half it was not, so it memorised and learned nothing.
+The shape of a hand does not carry whether the hand is holding something.
+
+`tools/grip_from_object.py` stops reading the hand. It measures the distance from the
+nearest hand landmark to the nearest point of the object the pipeline is tracking, and
+calls it contact below four centimetres. That threshold is a physical distance, so it means
+the same thing in anybody's kitchen, where a flatness threshold has to be found inside the
+recording it is used on.
+
+`tools/check_contact_against_pilot.py` scores it on their recording by running our tracker
+on half an avocado in their kitchen and comparing against their labels for that same
+object. Over 137 frames it agrees 67.2 per cent of the time and catches 93.8 per cent of
+the frames they mark. It over-calls, marking contact on 73.7 per cent of frames against
+their 46.7, because it holds on while the hand lingers near the avocado after setting it
+down. One window of one recording is not a general result. It is the first thing in this
+project to beat guessing on data from outside the lab.
+
+What it measures is contact and not holding. A hand working inside a stationary bowl passes
+the test, which is why the static red bowl reads 75.8 per cent. Asking whether the object
+keeps a fixed offset from the wrist was tried as a second test and does not separate the
+two, because over a second a still hand beside a still bowl holds just as fixed an offset
+as a hand carrying it.
 
 **The object poses have still not been checked against known truth.** The Pilot Dataset
 carries 6-DoF poses for 42 objects in `cook_0`. Every one of them is static furniture:
@@ -116,9 +149,11 @@ object's pose, so the carried object poses remain unchecked.
 Depth has an independent check, against the hand positions the glasses compute on their own
 chip. That covers depth alone.
 
-**The gaze interface has not been started.** A person looks at an object. The system works
-out which object they mean. It is the other half of what the glasses can do. It shares
-very little with this pipeline.
+**The gaze interface is one measurement, not an interface.** A person looks at an object
+and the system works out which object they mean. What exists today is
+`tools/gaze_prompt.py`, which shows gaze carries a signal the hand does not: stepping from
+the hand towards the gaze beats the hand alone by seven points and reaches 86 per cent of
+what is available. Nothing selects an object end to end and nothing runs live.
 
 ## What to build next, in order
 
@@ -146,29 +181,61 @@ The box diagonal survives that. It is uneven across tasks. Grip and pour agree c
 while scoop and pick do not, so a whole demonstration is not automatically the right unit
 of comparison. Finding a measure that holds for all four tasks is the open question.
 
-**2. Check the work against ground truth, using the Aria Gen 2 Pilot Dataset.** Nothing
-here has been compared with a known correct answer. Depth was checked against the hand
-positions the glasses compute themselves, which is independent and covers depth alone. The
-object poses have never been checked, because none of our own recordings carries a correct
-answer.
+**2. Make the object model work for a jug.** The spoons, tins and the bowl come out at
+their real sizes. The jugs come out two to three times too wide and the rotation is why.
+`tools/object_model_refine.py` already takes 9 cm off two of the three by fitting each
+frame against the model built so far. It is not enough.
 
-The Aria Gen 2 Pilot Dataset is the right source. It was recorded on these same glasses, so
-nothing has to be adapted. Three of its data groups answer three separate questions:
+The fits sit a median of 0.7 to 3.0 mm from the model, which is far tighter than the model
+is wide. A fit settling snugly in the wrong place is what a smooth surface does, so more
+rounds of the same fitting will not help. What would help is a rotation measured from the
+object's own points, fitted over the whole window at once. The wrist should have no say in
+it and neither should any single pair of frames.
 
-| Data group | What it would settle |
-| --- | --- |
-| `scene/3d_bounding_box.csv` | Whether our object poses are right |
-| `depth/depth` | Whether our stereo depth is right, across a whole frame |
-| `hand_object_interaction/` | Whether the grip detection agrees with labelled interactions |
+**3. Stop the contact detection over-calling.** It catches 93.8 per cent of the frames
+Meta's labels mark and marks 73.7 per cent of frames against their 46.7. The extra frames
+are the hand lingering near the object after setting it down. Distance alone cannot tell
+those apart. Whether the object moves with the hand would and the version of that test
+tried here does not work, because over a second a still hand beside a still object holds a
+fixed offset too. A longer window is the obvious next thing to measure.
+
+**4. Build the gaze interface.** `tools/gaze_prompt.py` shows the signal is there. Nothing
+turns it into a system that picks an object. That is the other half of what the glasses can
+do and it is the largest piece of work left.
+
+## Ground truth and what it settled
+
+Nothing in this project was compared with a known correct answer until the Aria Gen 2 Pilot
+Dataset was brought in. It was recorded on these same glasses, so nothing has to be
+adapted. Three of its data groups answer three separate questions:
+
+| Data group | What it settles | Answer |
+| --- | --- | --- |
+| `hand_object_interaction/` | Whether grip detection agrees with labelled interaction | Checked. Hand shape 46.9%, object distance 67.2% |
+| `hand_object_interaction/` | Whether a rule can place the prompt coordinate | Checked. Hand 39.1%, hand with gaze 46.3%, ceiling 54 to 56% |
+| `scene/3d_bounding_box.csv` | Whether our object poses are right | Static furniture only, so it cannot check a carried object |
+| `depth/depth` | Whether our stereo depth is right across a frame | Not used yet |
 
 Twelve sequences exist and four of them handle objects, which are `cook_0`, `clean_0`,
 `eat_0` through `eat_3`. One sequence costs about 2.3 GB, since the recording is 2.2 GB
-while the annotations are 1 to 5 MB.
+while the annotations are 1 to 5 MB. `cook_0` is the one downloaded, into
+`reference/pilot_cook_0/`, which `.gitignore` keeps out of the repository.
 
-**What you need to do first.** Go to Meta's Aria Gen 2 Pilot Dataset page, accept the
-terms and download the manifest of file links. The links are signed and they expire, so
-grab one when you are ready to use it. Put it in `reference/` and the sizes above tell you
-which sequence to pull.
+**To get another one.** Go to Meta's Aria Gen 2 Pilot Dataset page, accept the terms and
+download the manifest of file links. The links are signed and they expire, so grab one when
+you are ready to use it. Put it in `reference/` and the sizes above tell you which sequence
+to pull.
+
+**To run our pipeline on one of their recordings.** Link the recording into `recordings/`
+under a name the notebook can glob, add a row to `tools/pilot_runs.csv` and run the driver
+against a scratch copy of the notebook, so their outputs do not land in the committed one:
+
+```
+ln -s "$PWD/reference/pilot_cook_0/cook_0.vrs" recordings/cook0_pilot.vrs
+python3 tools/run_all_objects.py --runs tools/pilot_runs.csv \
+    --notebook notebooks/_pilot_scratch.ipynb
+python3 tools/check_contact_against_pilot.py cook0_avocado reference/pilot_cook_0
+```
 
 ## Where to read next
 

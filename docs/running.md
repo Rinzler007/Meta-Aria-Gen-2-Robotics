@@ -156,7 +156,15 @@ is a true result and a useless demonstration.
 | `tools/run_all_objects.py [recordings]` | Runs the object pipeline over everything in `tools/object_runs.csv`.               | yes                    |
 | `tools/check_tracking.py <recording>`   | Draws frames with the tracked mask outlined, to see what area cannot tell you.     | no, it reads the cache |
 | `tools/object_head_motion.py`           | How far the glasses moved during each pipeline window.                             | yes                    |
-| `tools/grasp_intervals.py`              | Finds when the hand closed on something and when it let go.                        | yes                    |
+| `tools/grasp_intervals.py`              | Finds when the hand closed on something, from the shape of the hand.               | yes                    |
+| `tools/grip_from_object.py`             | Finds when the hand touched the object, from the distance between the two.         | yes                    |
+| `tools/object_model.py`                 | Pools the per frame surfaces into one model of the object.                         | no                     |
+| `tools/object_model_refine.py`          | The same, correcting each frame against the model built so far.                    | no                     |
+| `tools/grip_features.py <pilot folder>` | Scores every hand shape against outside labels. Answers whether a better one exists. | no, it reads the pilot data |
+| `tools/check_against_pilot.py <folder>` | Scores the hand shape grip detection against outside labels.                       | no, it reads the pilot data |
+| `tools/check_contact_against_pilot.py`  | Scores the object distance contact detection against outside labels.               | no, it reads the pilot data |
+| `tools/prompt_rule.py <pilot folder>`   | Scores rules that place the prompt coordinate from the hand.                       | no, it reads the pilot data |
+| `tools/gaze_prompt.py <pilot folder>`   | Scores rules that place it using where the wearer is looking.                      | no, it reads the pilot data |
 | `tools/object_summary.py`               | Collects every object run into one table and one figure.                           | no                     |
 | `tools/repeatability.py`                | Whether the three takes of a task give the same measurement.                       | no                     |
 | `tools/auto_window.py`                  | Proposes each window from the grip detection.                                       | no                     |
@@ -191,6 +199,12 @@ python3 tools/grasp_intervals.py
 
 Writes `outputs/grasp_intervals.csv` and a figure. The window comes from this, so it runs
 before anything needing a window.
+
+This reads the shape of the hand and it only works on our own recordings. On somebody
+else's it performs at chance, which `tools/check_against_pilot.py` measures and
+`tools/grip_features.py` explains. Once the pipeline has run there is a better answer in
+`tools/grip_from_object.py`, which measures the distance from the hand to the object. It
+cannot be used here, because it needs the object cloud that the window produces.
 
 **3. Let the windows follow from that.**
 
@@ -240,13 +254,42 @@ swallowing the table. It cannot tell you the outline is on the right object.
 ```bash
 python3 tools/object_pose.py          # 4 by 4 pose per frame
 python3 tools/object_head_motion.py   # head travel per window
+python3 tools/object_model.py         # one model of the object from every frame
+python3 tools/object_model_refine.py  # the same, with each frame fitted to the model
+python3 tools/grip_from_object.py     # when the hand touched the object
 python3 tools/object_summary.py       # all runs in one table and figure
 python3 tools/repeatability.py        # whether the three takes of a task agree
 python3 tools/export_ply.py           # the PLY clouds, which are not in git
 ```
 
-In that order. `object_summary.py` picks up the head motion if it is there. The summary is
+In that order. `object_pose.py` has to come before either model tool, since both undo the
+pose it writes. `object_summary.py` picks up the head motion if it is there. The summary is
 what `repeatability.py` reads.
+
+**8. Check the parts that can be checked against outside labels.**
+
+Everything above is measured against our own recordings. These four score the same work
+against Meta's Aria Gen 2 Pilot Dataset, which was recorded on the same glasses by somebody
+else. Download a sequence into `reference/pilot_cook_0/` first, which `docs/status.md`
+explains.
+
+```bash
+python3 tools/check_against_pilot.py reference/pilot_cook_0   # grip, from the hand's shape
+python3 tools/grip_features.py reference/pilot_cook_0         # whether a better shape exists
+python3 tools/prompt_rule.py reference/pilot_cook_0           # the prompt, from the hand
+python3 tools/gaze_prompt.py reference/pilot_cook_0           # the prompt, with the eyes
+```
+
+Scoring the contact detection needs our tracker run on their recording first, which
+`tools/pilot_runs.csv` sets up. The scratch notebook keeps their outputs out of the
+committed one:
+
+```bash
+ln -s "$PWD/reference/pilot_cook_0/cook_0.vrs" recordings/cook0_pilot.vrs
+python3 tools/run_all_objects.py --runs tools/pilot_runs.csv \
+    --notebook notebooks/_pilot_scratch.ipynb
+python3 tools/check_contact_against_pilot.py cook0_avocado reference/pilot_cook_0
+```
 
 ## Things that will bite you
 

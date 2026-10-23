@@ -61,8 +61,24 @@ def measures(p):
     )
 
 
+
+def our_labels():
+    """The labels this project's own recordings produce, read from tools/object_runs.csv.
+
+    Why filter at all ? Because `outputs/` also holds runs of the pipeline on somebody
+    else's recording, which `tools/pilot_runs.csv` sets up so that the grip detection can
+    be scored against outside labels. Those are not our demonstrations and they have no
+    business in a table that reports what our twelve recordings did. A tool that globs the
+    folder would quietly fold them in.
+    """
+    runs = REPO / "tools" / "object_runs.csv"
+    return {r.get("label") or r["recording"] for r in csv.DictReader(runs.open())}
+
+
 def main():
-    files = sorted(OUT.glob("object_*_trajectory.csv"))
+    mine = our_labels()
+    files = [f for f in sorted(OUT.glob("object_*_trajectory.csv"))
+             if re.sub(r"^object_|_trajectory\.csv$", "", f.name) in mine]
     if not files:
         raise SystemExit("no object trajectories in outputs/")
 

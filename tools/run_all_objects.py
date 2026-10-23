@@ -13,6 +13,11 @@ things that differ between runs. Everything else the notebook works out for itse
     python3 tools/run_all_objects.py              # everything in the file
     python3 tools/run_all_objects.py pour_02      # just these
 
+A different list of runs can be given with --runs, which is how the external check on
+somebody else's recording is driven without putting their sequence among our twelve. Pair
+it with --notebook to execute a scratch copy, so a run on a recording that is not ours does
+not leave its outputs inside the committed notebook.
+
 Masks are cached per recording and window, so a second run skips the slow part and takes
 a couple of minutes rather than a quarter of an hour. That is what makes it reasonable to
 re-run the whole set after a change to the pipeline, which is the point of having this.
@@ -40,9 +45,9 @@ REPORT = re.compile(
     r"frame span|accumulated cloud")
 
 
-def configure(recording, label, start_s, px, py, duration):
+def configure(nb, recording, label, start_s, px, py, duration):
     """Rewrite the three configuration lines in the notebook, leaving its comments alone."""
-    d = json.loads(NB.read_text())
+    d = json.loads(nb.read_text())
     hits = 0
     for c in d["cells"]:
         if c["cell_type"] != "code":
@@ -63,16 +68,16 @@ def configure(recording, label, start_s, px, py, duration):
     # previous recording again and overwrite the wrong outputs without saying anything.
     if hits != 1:
         sys.exit(f"expected one configuration cell in the notebook, found {hits}")
-    NB.write_text(json.dumps(d, indent=1, ensure_ascii=False) + "\n")
+    nb.write_text(json.dumps(d, indent=1, ensure_ascii=False) + "\n")
 
 
-def run_one(row):
+def run_one(row, nb):
     # A row without a label names its outputs after the recording, which is what every
     # row did before a second object per recording became possible.
     label = row.get("label") or row["recording"]
     # A row without a duration gets four seconds.
     duration = row.get("duration_s") or "4.0"
-    configure(row["recording"], label, row["start_s"], row["prompt_x"], row["prompt_y"], duration)
+    configure(nb, row["recording"], label, row["start_s"], row["prompt_x"], row["prompt_y"], duration)
     print(f"\n=== {label}  start {row['start_s']} s  for {duration} s  "
           f"prompt [{row['prompt_x']}, {row['prompt_y']}] ===", flush=True)
     t0 = time.time()
@@ -80,8 +85,8 @@ def run_one(row):
     # which is how the rest of this repository records what was observed.
     r = subprocess.run([
         str(JUPYTER), "nbconvert", "--to", "notebook", "--execute", "--inplace",
-        "--ExecutePreprocessor.timeout=3600", str(NB),
-    ], cwd=NB.parent, capture_output=True, text=True)
+        "--ExecutePreprocessor.timeout=3600", str(nb),
+    ], cwd=nb.parent, capture_output=True, text=True)
     if r.returncode != 0:
         print(r.stderr[-3000:])
         print(f"=== {label} FAILED after {time.time() - t0:.0f} s ===", flush=True)
@@ -89,7 +94,7 @@ def run_one(row):
 
     # We read the numbers back out of the executed notebook rather than reprinting
     # anything we were carrying, so what appears here is what the run actually produced.
-    d = json.loads(NB.read_text())
+    d = json.loads(nb.read_text())
     for c in d["cells"]:
         for o in c.get("outputs", []):
             for line in "".join(o.get("text", [])).splitlines():
@@ -102,18 +107,31 @@ def run_one(row):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("only", nargs="*", help="recordings to run; default is all of them")
+    ap.add_argument("--runs", default=RUNS, type=Path,
+                    help="a different list of runs, same columns as tools/object_runs.csv")
+    ap.add_argument("--notebook", type=Path,
+                    help="execute this copy of the notebook, leaving the committed one alone")
     a = ap.parse_args()
 
-    rows = list(csv.DictReader(RUNS.open()))
+    # Absolute, because the notebook is executed with the notebooks folder as the working
+    # directory and a path relative to the repository root would not resolve from there.
+    nb = (a.notebook.resolve() if a.notebook else NB)
+    if a.notebook and not nb.exists():
+        # A scratch copy has to sit beside the original, because the notebook works the
+        # repository out from its own folder and would look for the recordings elsewhere.
+        nb.write_text(NB.read_text())
+        print(f"copied the notebook to {nb.name}")
+
+    rows = list(csv.DictReader(Path(a.runs).open()))
     if a.only:
         rows = [r for r in rows if (r.get("label") or r["recording"]) in a.only]
         missing = set(a.only) - {(r.get("label") or r["recording"]) for r in rows}
         if missing:
-            sys.exit(f"not in {RUNS.name}: {', '.join(sorted(missing))}")
+            sys.exit(f"not in {Path(a.runs).name}: {', '.join(sorted(missing))}")
     if not rows:
         sys.exit("nothing to run")
 
-    failed = [(r.get("label") or r["recording"]) for r in rows if not run_one(r)]
+    failed = [(r.get("label") or r["recording"]) for r in rows if not run_one(r, nb)]
     print(f"\nran {len(rows) - len(failed)} of {len(rows)}")
     if failed:
         print(f"failed: {', '.join(failed)}")

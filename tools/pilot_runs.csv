@@ -1,0 +1,2 @@
+recording,label,start_s,duration_s,prompt_x,prompt_y,note
+cook0,cook0_avocado,63.3,5.0,1255,1542,"half an avocado held in the left hand in Meta's cook_0 sequence. It is put down on the board partway through the window, which is what makes it worth tracking: their labels mark contact up to 64.5 s and nothing after, so our contact detection has a release to find that nobody on this project chose"

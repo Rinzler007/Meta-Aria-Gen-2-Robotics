@@ -32,8 +32,10 @@ three ways.
 | Frames with a 3D position | 2,789 |
 | Points per object | 63,889 to 555,816 |
 | Hand movement, room against glasses | 1.41 times, range 1.26 to 1.78 |
-| Grip detected automatically | 12 of 12 of our recordings, chance on an outside one |
+| Contact found from the object | 97 to 100% of frames on the six carried objects |
+| The same, scored on an outside recording | 67.2% agreement, 93.8% of their frames caught |
 | Position error, measured on a still object | 6.1 cm box |
+| Object model width, against a 25 to 93 cm stack | 12 to 24 cm, jugs 45 to 52 |
 
 **The hand reading is the firmest.** The glasses measure from a camera on your head. Your head turns to follow your hand as you reach. Both move at once, so a recording
 understates the movement. Measured against the room it comes out 1.41 times
@@ -57,6 +59,25 @@ typical frame is out by 0.69 cm. That is the error on every object position here
 Lower is better. Net displacement is the wrong measure for a whole demonstration, since
 picking a spoon up and putting it back moves it nowhere. The box diagonal survives that.
 Grip and pour agree closely. Scoop and pick do not.
+
+**Everything here has been checked against somebody else's labels where that was
+possible.** Meta's Aria Gen 2 Pilot Dataset was recorded on these same glasses in somebody
+else's kitchen and its labels owe nothing to this project.
+
+| | Ours | Theirs says | Ceiling |
+| --- | --- | --- | --- |
+| Grip from the hand's shape | 46.9% agreement | contact, frame by frame | 100% |
+| Grip from the distance to the object | 67.2% agreement | contact with that object | 100% |
+| Placing the prompt from the hand | 39.6% on the object | the object being touched | 54% |
+| Placing the prompt from hand and gaze | 46.3% on the object | the object being touched | 54% |
+
+The grip figures are two different methods on the same sequence. The first reads the shape
+of the hand and performs at chance and no shape you can read off 21 landmarks does better.
+The second measures how close the hand comes to the object the pipeline is tracking.
+
+The prompt ceiling is 54 per cent because the hand's own middle only lands on the labelled
+hand that often. Hand tracking and labels disagree and a hand is often half hidden behind
+what it holds.
 
 ## How it works
 
@@ -114,9 +135,11 @@ python3 tools/repeatability.py      # whether the takes agree
 ## What is still manual
 
 Somebody reads a pixel coordinate off a frame and types it in, once per recording. The
-window is chosen by code. The best automatic rule for the coordinate lands on the object 39
-per cent of the time, measured against outside labels, which is not enough to drop the
-person. `tools/prompt_rule.py` scores it.
+window is chosen by code. The best automatic rule starts at the middle of the hand and
+steps a few centimetres towards where the wearer is looking, which lands on the object 46
+per cent of the time against a ceiling of 54. That is not enough to drop the person.
+`tools/prompt_rule.py` scores the rules built from the hand and `tools/gaze_prompt.py`
+scores the ones that use the eyes as well.
 
 ## Layout
 

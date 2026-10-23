@@ -77,10 +77,27 @@ def head_motion(vrs, t_from, t_to):
     )
 
 
+
+def our_labels():
+    """The labels this project's own recordings produce, read from tools/object_runs.csv.
+
+    Why filter at all ? Because `outputs/` also holds runs of the pipeline on somebody
+    else's recording, which `tools/pilot_runs.csv` sets up so that the grip detection can
+    be scored against outside labels. Those are not our demonstrations and they have no
+    business in a table that reports what our twelve recordings did. A tool that globs the
+    folder would quietly fold them in.
+    """
+    runs = REPO / "tools" / "object_runs.csv"
+    return {r.get("label") or r["recording"] for r in csv.DictReader(runs.open())}
+
+
 def main():
+    mine = our_labels()
     rows = []
     for traj in sorted(OUT.glob("object_*_trajectory.csv")):
         name = re.sub(r"^object_|_trajectory\.csv$", "", traj.name)
+        if name not in mine:
+            continue
         vrs = vrs_for(name)
         if vrs is None:
             print(f"{name}: no recording, skipped")

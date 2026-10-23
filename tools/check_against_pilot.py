@@ -32,6 +32,14 @@ The honest reading is that the method was built on twelve deliberate bench tasks
 object is picked up, carried and set down. Cooking is continuous two handed work with many
 brief contacts. The method has nothing to say about it. The 91 per cent agreement it
 scores on our recordings is agreement with our own data.
+
+What came of this. Two things, both of which are their own tool now.
+`tools/grip_features.py` asks whether a better hand feature exists and finds none: twelve
+candidates score 50 to 59 per cent and a fit over all of them together reaches 50.5 per
+cent on frames it was not fitted on. `tools/grip_from_object.py` therefore stops reading
+the hand and measures the distance from the hand to the object the pipeline is tracking,
+which `tools/check_contact_against_pilot.py` scores at 67.2 per cent on their recording.
+This tool stays because it is the measurement that sent the work in that direction.
 """
 
 import argparse
