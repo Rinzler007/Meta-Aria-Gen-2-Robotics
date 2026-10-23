@@ -58,10 +58,22 @@ the room frame conversion exists.
 ## What is not done
 
 **One manual step per recording.** Somebody reads a pixel coordinate on the object off a
-plotted frame and writes it into `tools/object_runs.csv`. There is no interface. Nothing
-is clicked. That is fine for twelve recordings. It does not survive a caregiver recording
-tasks all day. Working the coordinate out from the hand does not transfer between grips,
-so a dataset with known object positions is needed to measure any rule against.
+plotted frame and writes it into `tools/object_runs.csv`. There is no interface. Nothing is
+clicked. That is fine for twelve recordings. It does not survive a caregiver recording all
+day.
+
+Rules for placing it automatically can now be scored, against the Pilot Dataset's labels of
+the object a hand is touching. `tools/prompt_rule.py` runs that. The best of them takes the
+middle of the hand and steps 1 to 2 cm towards the outermost landmarks, which lands inside
+the object 39 per cent of the time.
+
+Two things come out of that. Reaching past the fingertips is wrong, since accuracy falls
+steadily the further out you step, down to 9 per cent at 9 cm. A held object overlaps the
+hand holding it. And 39 per cent is about seventy per cent of what is reachable, because
+the hand's own middle only lands on the labelled hand 56 per cent of the time. Hand
+tracking and labels disagree. A hand is often half hidden behind what it holds.
+
+Missing two frames in three is not good enough to drop a person from the loop.
 
 **The point cloud is a stack of partial surfaces for anything carried.** Each frame holds
 the side of the object the cameras could see, so the shape of the thing and the path it

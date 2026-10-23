@@ -113,8 +113,10 @@ python3 tools/repeatability.py      # whether the takes agree
 
 ## What is still manual
 
-Somebody reads a pixel coordinate off a frame and types it in, once per recording. Working
-it out from the hand does not transfer between grips. The window is chosen by code.
+Somebody reads a pixel coordinate off a frame and types it in, once per recording. The
+window is chosen by code. The best automatic rule for the coordinate lands on the object 39
+per cent of the time, measured against outside labels, which is not enough to drop the
+person. `tools/prompt_rule.py` scores it.
 
 ## Layout
 
