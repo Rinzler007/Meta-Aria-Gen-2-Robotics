@@ -112,45 +112,37 @@ shares very little with the current pipeline.
 
 ## What to build next, in order
 
-**1. Place the windows automatically.** `tools/grasp_intervals.py` already finds when the
-hand closes on something and lets go, in 8 of the 12 recordings. Starting each window a
+**1. Place the windows automatically.** `tools/grasp_intervals.py` finds when the hand takes
+hold of something and lets go, across all twelve recordings. Starting each window a
 fixed time after the grasp begins would make the three takes of a task comparable, which
 is the reason three takes of each were recorded. Note that the prompt is a pixel in the
 frame at the window start, so moving a window means finding its prompt again.
 
-**2. Find a second signal for wide objects.** Grip detection reads how compact the 21 hand
-landmarks are, which separates a tight grip from an open hand and works on the spoon and
-the jug. It cannot see a tin being picked up.
-
-The reason is not that the signal inverts, which is what this document said before the
-three tin recordings were measured properly. The hand reads 4.8 to 5.3 while reaching for a
-tin and 4.4 to 5.3 while holding it, so there is no gap to find. It falls to about 4.3 only
-once the tin is set down and the hand relaxes, so the one clear transition in the signal is
-the release. A method hunting for a change marks the period after the tin is down as the
-grip.
-
-The tool rejects those recordings rather than reporting that, so no wrong answer gets out.
-Covering them needs a signal beyond the shape of the hand, since a hand reaching for a tin
-and a hand carrying one look alike by this measure.
-
-**3. Measure the prompt rule against ground truth.** HOT3D carries true object poses with
+**2. Measure the prompt rule against ground truth.** HOT3D carries true object poses with
 rendered masks across 33 objects. Deriving the coordinate from the hand was tried and does not
 transfer between grips and without ground truth there is no way to tell a near miss from
 a wild one.
 
-**4. Give the object a centre that does not depend on the viewpoint.** This is where the
-remaining error lives, and it is not where this document said it was a day ago.
+**Settled: the 0.69 cm position error is the floor for this method.** Three explanations
+were tested on the static bowl and two of them were wrong.
 
-The object's position is currently the average of the points visible in that frame. The
-visible part of a thing is not the thing, so the average moves when the viewer moves even
-though the object has not. On the static bowl the apparent movement correlates at 0.82
-with the viewing angle, which swings only 4.8 degrees across the window, and at 0.90 with
-how far the head has moved. Only 0.24 cm of the 0.69 cm typical error lies along the line
-of sight, so this is not simply depth noise.
+The pose stream is not the cause. Swapping the 10 Hz stream for the 794 Hz one closes the
+gap between a pose and a frame from 200 ms to 1.33 ms and leaves the typical error at
+0.69 cm, exactly where it was.
 
-The fix is a position taken from a model of the object rather than from whichever part of
-it happens to face the cameras, which is the same work as building one 3D model out of the
-120 partial surfaces.
+A viewpoint dependent centre is not the cause either. Pooling all 120 frames into one model
+of the bowl and lining each frame up against it leaves the typical error at 0.69 cm and
+moves the full box from 6.08 cm to 5.91 cm.
+
+What it is: stereo matching noise. The error points in a random direction, scoring 0.18 for
+consistency in the room frame and 0.17 in the device frame, so nothing is systematically
+offset. It grows when the head moves, correlating 0.82 with viewing angle, which fits motion
+blur and the longer gap to a usable pose. At a range of 65 cm, 0.69 cm is an angle of
+0.61 degrees, which is roughly three pixels of disparity in the rectified camera.
+
+Three pixels is close to what block matching gives. Going below it needs sub pixel disparity
+refinement or averaging over frames, and neither is worth doing while the objects themselves
+move 5 cm to 47 cm. The error is 1.5 to 14 per cent of the movement being measured.
 
 **Not worth doing: switching to the `vio_high_frequency` stream.** It runs at 794.1 Hz
 against the 10 Hz stream in use and reports the device pose directly without the chaining

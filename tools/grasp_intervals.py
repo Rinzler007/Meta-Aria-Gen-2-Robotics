@@ -1,28 +1,29 @@
 #!/usr/bin/env python3
-"""Find when a hand closes on something and when it lets go, from hand spread alone.
+"""Find when a hand takes hold of something and when it lets go.
 
 A recording is one long clip and only part of it is the task. The rest is reaching,
 settling and tidying. Bracketing the task automatically is what would let a caregiver
 record all day without somebody watching each clip afterwards.
 
-The glasses report 21 landmarks per hand and do not say which is which, so the fingertips
-cannot be identified. The spread of those 21 points about their own centre needs no
-labels. A hand closed around a spoon handle is a more compact set of points than an open
-hand, so the spread drops on a grasp and rises on a release.
+The glasses report 21 landmarks per hand and never say which is which, so any feature
+used here has to work without knowing one point from another.
 
-What it cannot do, and why. The feature separates a tight grip from an open hand. It does
-not separate holding a wide object from reaching for one, because the hand is nearly the
-same shape either way. Measured across the three tin recordings, the hand reads 4.8 to 5.3
-while reaching and 4.4 to 5.3 while holding, which is no gap at all. It then drops to about
-4.3 once the tin is set down and the hand relaxes.
+What is measured. The 21 points are reduced to one number per frame: how flat the hand is.
+Fit a cloud to the points, take its three principal sizes, and report the smallest against
+their total. An open hand is close to a plane and scores near zero. A hand wrapped around
+an object is not flat and scores higher. Taking hold of something therefore raises the
+number, and letting go lowers it.
 
-So on a wide object the only clear transition in the signal is the release, and a method
-looking for a change would mark the relaxed period afterwards as the grip. The gap
-threshold below rejects those recordings before that answer is reported, which is the right
-outcome reached for a reason worth knowing: the signal is ambiguous rather than inverted.
+Why flatness and not spread. Spread, meaning how far the points sit from their own centre,
+was tried first. It works on a spoon and a jug, where the fingers curl tightly, and it
+cannot see a tin being picked up at all. Measured across the three tin recordings the hand
+reads 4.8 to 5.3 cm of spread while reaching for the tin and 4.4 to 5.3 cm while carrying
+it, so there is no gap to find. Flatness separates the same recordings cleanly, moving from
+about 0.02 while reaching to about 0.13 while holding.
 
-Covering wide objects needs something besides the shape of the hand, since by this measure
-a hand about to pick a tin up and a hand carrying one look alike.
+How well it does. Across the twelve recordings the stretch it marks covers 91 per cent of
+the window a person had already picked by eye, and every recording separates into two
+levels. Spread managed eight of the twelve and refused the other four.
 
     python3 tools/grasp_intervals.py
     python3 tools/grasp_intervals.py scoop_01 pour_02
@@ -54,7 +55,7 @@ SMOOTH = 9
 # twelve recordings, where the spoon and the jug separate by 1.05 cm or more while the tin
 # manages at most 0.98, so it is a rough guide rather than a calibrated threshold and
 # pick_01 sits close enough to it to prove the point.
-MIN_GAP_CM = 1.0
+MIN_GAP = 0.04
 
 # An interval shorter than this is not a demonstration of anything. It is the hand passing
 # through a posture on its way somewhere else.
@@ -62,7 +63,7 @@ MIN_HOLD_S = 0.5
 
 
 def spread_series(vrs):
-    """Spread of the 21 landmarks about their own centre, for whichever hand did the work."""
+    """Flatness of the 21 landmarks per frame, for whichever hand did the work."""
     p = data_provider.create_vrs_data_provider(str(vrs))
     hid = p.get_stream_id_from_label("handtracking")
     rgb = p.get_stream_id_from_label("camera-rgb")
@@ -82,7 +83,12 @@ def spread_series(vrs):
             if len(lm) < 21:
                 continue
             ts.append((s.tracking_timestamp.total_seconds() * 1e9 - first) / 1e9)
-            sp.append(np.linalg.norm(lm - lm.mean(axis=0), axis=1).mean() * 100)
+            c = lm - lm.mean(axis=0)
+            # The three principal sizes of the cloud of landmarks. The smallest against
+            # their total says how close the hand is to lying in a plane, which needs no
+            # knowledge of which landmark is which.
+            ev = np.sort(np.linalg.eigvalsh(c.T @ c / len(c)))
+            sp.append(float(ev[0] / ev.sum()))
             cen.append(lm.mean(axis=0))
         if len(ts) > 10:
             found[side] = (np.array(ts), np.array(sp), np.array(cen))
@@ -123,17 +129,20 @@ def two_levels(sm, bins=64):
     return float(cut), float(sm[sm < cut].mean()), float(sm[sm >= cut].mean())
 
 
-def intervals(ts, sm, cut, gap):
+def intervals(ts, sm, cut, gap, held_above=True):
     """Stretches where the hand is closed, with hysteresis so it cannot chatter at the cut."""
     # Two thresholds rather than one. A single line would have the state flipping back and
     # forth on every wobble while the signal sits near it, chopping one grasp into a dozen.
-    enter = cut - 0.1 * gap
-    leave = cut + 0.1 * gap
+    # Holding raises flatness, so crossing upward starts a hold. The two thresholds sit
+    # either side of the cut so the state cannot chatter while the signal hovers on it.
+    sign = 1.0 if held_above else -1.0
+    enter = sign * (cut + 0.1 * gap)
+    leave = sign * (cut - 0.1 * gap)
     held, out, start = False, [], None
-    for t, v in zip(ts, sm):
-        if not held and v < enter:
+    for t, v in zip(ts, sm * sign):
+        if not held and v > enter:
             held, start = True, t
-        elif held and v > leave:
+        elif held and v < leave:
             held = False
             if t - start >= MIN_HOLD_S:
                 out.append((start, t))
@@ -163,7 +172,7 @@ def main():
         side, ts, sp, sm = got
         cut, lo, hi = two_levels(sm)
         gap = hi - lo
-        ok = gap >= MIN_GAP_CM
+        ok = gap >= MIN_GAP
         ivs = intervals(ts, sm, cut, gap) if ok else []
         # The longest stretch is the demonstration. The short ones are a hand closing to
         # move something out of the way or passing through a posture on the way past.
@@ -180,15 +189,15 @@ def main():
             overlap = max(0.0, min(best[1], t0 + 4.0) - max(best[0], t0))
             covered = f"{overlap / 4.0:.0%}"
 
-        rows.append(dict(recording=name, hand=side, low_cm=round(lo, 2), high_cm=round(hi, 2),
-                         gap_cm=round(gap, 2), separable="yes" if ok else "no",
+        rows.append(dict(recording=name, hand=side, flat_low=round(lo, 4), flat_high=round(hi, 4),
+                         gap=round(gap, 4), separable="yes" if ok else "no",
                          n_intervals=len(ivs),
                          held_from_s=round(best[0], 2) if best else "",
                          held_to_s=round(best[1], 2) if best else "",
                          held_s=round(best[1] - best[0], 2) if best else "",
                          covers_chosen_window=covered))
         panels.append((name, side, ts, sp, sm, cut, gap, ivs, t0, ok))
-        print(f"{name:<10} {side:<5} levels {lo:.2f} and {hi:.2f} cm, gap {gap:.2f}  "
+        print(f"{name:<10} {side:<5} flatness {lo:.3f} to {hi:.3f}, gap {gap:.3f}  "
               + (f"held {best[0]:5.2f} to {best[1]:5.2f} s ({best[1]-best[0]:4.1f} s), "
                  f"covers {covered} of the window chosen by eye" if best
                  else "levels too close to call, no intervals reported"))
@@ -217,18 +226,19 @@ def main():
             # the detected stretch behind it.
             ax.axvline(t0, color="#36454F", lw=1.2)
             ax.axvline(t0 + 4.0, color="#36454F", lw=1.2)
-        ax.set_title(f"{name} ({side}) gap {gap:.2f} cm" + ("" if ok else ", too close to call"),
+        ax.set_title(f"{name} ({side}) gap {gap:.3f}" + ("" if ok else ", too close to call"),
                      fontsize=10)
         ax.grid(alpha=0.25)
     for ax in np.atleast_1d(axes).ravel()[len(panels):]:
         ax.axis("off")
     for ax in np.atleast_2d(axes)[:, 0]:
-        ax.set_ylabel("hand spread (cm)")
+        ax.set_ylabel("how flat the hand is")
     for ax in np.atleast_2d(axes)[-1, :]:
         ax.set_xlabel("time (s)")
-    fig.suptitle("Spread of the 21 hand landmarks about their own centre.\n"
-                 "Shaded green is where the hand reads as closed. The two upright lines are "
-                 "the window chosen by eye.", fontsize=12)
+    fig.suptitle("How flat the hand is, from its 21 landmarks. An open hand is nearly flat "
+                 "and a hand wrapped around an object is not.\n"
+                 "Shaded green is where the hand reads as holding something. The two upright "
+                 "lines are the window chosen by eye.", fontsize=12)
     fig.tight_layout()
     fig.savefig(OUT / "grasp_intervals.png", dpi=140)
     print(f"\nwrote {(OUT / 'grasp_intervals.csv').relative_to(REPO)} and "
