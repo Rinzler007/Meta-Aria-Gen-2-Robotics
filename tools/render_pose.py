@@ -62,79 +62,84 @@ OUT = REPO / "outputs"
 
 
 def formula(dest):
-    """Draw the algebra, so a slide can show a matrix as a matrix.
+    """Draw what is actually inside a pose file, so the csv can be read without guessing.
+
+    The file has nineteen columns and the names on their own say very little. This puts the
+    matrix on the left and every column beside it, with the piece of algebra that produced
+    it where there is one. A formula with no column next to it tells a reader nothing about
+    the file they have been handed, so none are shown here on their own.
 
     Matplotlib's maths renderer has no matrix environment, so the brackets and the blocks
-    inside them are drawn by hand. That is a few more lines here and it means the picture
-    is built by this repository like every other figure, which is the point.
-
-    The labels sit inside the cells they describe. Arrows pointing in from outside were
-    tried and they cross the brackets, which makes a picture of a matrix harder to read
-    than the matrix.
+    inside them are drawn by hand.
     """
-    fig = plt.figure(figsize=(16, 5.4))
+    fig = plt.figure(figsize=(16.5, 5.6))
     BLUE, RED, GREY = "#1C7293", "#B85042", "#808080"
 
     # ---- the matrix itself, on the left -------------------------------------------
-    ax = fig.add_axes([0.02, 0.04, 0.40, 0.92])
+    ax = fig.add_axes([0.01, 0.06, 0.345, 0.88])
     ax.set_xlim(0, 10); ax.set_ylim(0, 10); ax.axis("off")
 
-    ax.text(0.5, 5.0, r"$T$", fontsize=46, va="center", ha="center")
-    ax.text(1.6, 5.0, r"$=$", fontsize=36, va="center", ha="center")
+    ax.text(0.5, 5.2, r"$T$", fontsize=42, va="center", ha="center")
+    ax.text(1.6, 5.2, r"$=$", fontsize=32, va="center", ha="center")
 
-    # The square brackets. Three strokes each, drawn in axis coordinates so they scale
+    # The square brackets, three strokes each, drawn in axis coordinates so they scale
     # with the figure. Tying them to a font would break the moment the size changed.
     for x, side in ((2.5, 1), (9.7, -1)):
-        ax.plot([x, x], [0.9, 9.1], color="black", lw=2.6)
-        ax.plot([x, x + 0.32 * side], [9.1, 9.1], color="black", lw=2.6)
-        ax.plot([x, x + 0.32 * side], [0.9, 0.9], color="black", lw=2.6)
+        ax.plot([x, x], [1.4, 9.0], color="black", lw=2.6)
+        ax.plot([x, x + 0.32 * side], [9.0, 9.0], color="black", lw=2.6)
+        ax.plot([x, x + 0.32 * side], [1.4, 1.4], color="black", lw=2.6)
 
-    # A faint rule between the blocks, which is how a 3 by 3 and a 3 by 1 are usually shown
-    # apart without claiming they are two separate matrices.
-    ax.plot([6.45, 6.45], [1.3, 8.7], color="#CCCCCC", lw=1, ls=(0, (4, 4)))
-    ax.plot([2.8, 9.4], [3.3, 3.3], color="#CCCCCC", lw=1, ls=(0, (4, 4)))
+    ax.plot([6.45, 6.45], [1.8, 8.6], color="#CCCCCC", lw=1, ls=(0, (4, 4)))
+    ax.plot([2.8, 9.4], [3.6, 3.6], color="#CCCCCC", lw=1, ls=(0, (4, 4)))
 
-    ax.text(4.6, 7.0, r"$R$", fontsize=40, va="center", ha="center", color=BLUE)
-    ax.text(4.6, 5.3, "rotation, 3 by 3\nwhich way it is turned",
+    ax.text(4.6, 7.2, r"$R$", fontsize=38, va="center", ha="center", color=BLUE)
+    ax.text(4.6, 5.6, "which way it\nis turned",
             fontsize=12, va="center", ha="center", color=BLUE)
-    ax.text(8.1, 7.0, r"$t$", fontsize=40, va="center", ha="center", color=RED)
-    ax.text(8.1, 5.3, "translation, 3 by 1\nwhere it is",
+    ax.text(8.1, 7.2, r"$t$", fontsize=38, va="center", ha="center", color=RED)
+    ax.text(8.1, 5.6, "where it is",
             fontsize=12, va="center", ha="center", color=RED)
 
-    ax.text(4.6, 2.1, r"$0\;\;\;0\;\;\;0$", fontsize=26, va="center", ha="center", color=GREY)
-    ax.text(8.1, 2.1, r"$1$", fontsize=26, va="center", ha="center", color=GREY)
-    ax.text(6.3, 0.2, "the bottom row is always the same, which is what makes it 4 by 4",
-            fontsize=10.5, va="center", ha="center", color=GREY, style="italic")
+    ax.text(4.6, 2.5, r"$0\;\;\;0\;\;\;0$", fontsize=22, va="center", ha="center", color=GREY)
+    ax.text(8.1, 2.5, r"$1$", fontsize=22, va="center", ha="center", color=GREY)
+    ax.text(6.1, 0.5, "the bottom row never changes, which is what makes it 4 by 4",
+            fontsize=10, va="center", ha="center", color=GREY, style="italic")
 
-    # ---- what it is for, on the right ---------------------------------------------
-    ax = fig.add_axes([0.45, 0.04, 0.54, 0.92])
+    # ---- every column of the file, on the right ------------------------------------
+    ax = fig.add_axes([0.375, 0.06, 0.62, 0.88])
     ax.set_xlim(0, 10); ax.set_ylim(0, 10); ax.axis("off")
+    ax.text(0.0, 9.8, "one row per frame, nineteen columns",
+            fontsize=12.5, va="center", ha="left", style="italic", color="#444444")
 
-    # The description goes under its equation. Beside it, the longest equation runs into
-    # its own label.
-    # The third number is how far under its equation the description sits. A one line
-    # equation needs little room. The one carrying a fraction is twice as tall and its
-    # description has to clear the whole of it.
-    rows = [
-        (r"$p\,' = T\,p$",
-         "a point is turned and shifted in one multiplication", 0.60),
-        (r"$T_{a \rightarrow c} = T_{a \rightarrow b}\;\; T_{b \rightarrow c}$",
-         "movements chain by multiplying", 0.60),
-        (r"$T^{-1} = \left[\; R^{T}, \;\; -R^{T} t \;\right]$",
-         "undoing a movement is an inverse", 0.62),
-        (r"$T_{\mathrm{room},\,\mathrm{wrist}} = T_{\mathrm{room},\,\mathrm{device}}"
-         r"\;\; T_{\mathrm{device},\,\mathrm{wrist}}$",
-         "the hand, put into room coordinates", 0.62),
-        (r"$T_{\mathrm{rel}}(k) = T(0)^{-1}\, T(k)$",
-         "every pose measured from the window's first frame", 0.62),
-        (r"$\theta = \arccos\!\left(\frac{\mathrm{tr}\,R - 1}{2}\right)$",
-         "how far it turned, one number out of nine", 1.00),
+    # Each entry is the column name, what it holds, and the algebra behind it where there
+    # is any. The name is set in a typewriter face so it matches the csv header exactly.
+    entries = [
+        ("frame, time_s", "which frame it is and when it happened", None),
+        ("m00 ... m23", "the matrix above, its top three rows read across", None),
+        ("turned_deg", "how far it has turned since the first frame",
+         r"$\theta = \arccos\left(\frac{\mathrm{tr}\,R - 1}{2}\right)$"),
+        ("axis_x, axis_y, axis_z", "the axis it turned about, as a unit vector",
+         r"$\mathrm{axis} \;\propto\; R - R^{T}$"),
+        ("grip_wander_cm", "how far the object slid inside the hand", None),
     ]
-    y = 9.3
-    for maths, why, drop in rows:
-        ax.text(0.1, y, maths, fontsize=19, va="center", ha="left")
-        ax.text(0.35, y - drop, why, fontsize=11.5, va="center", ha="left", color="#555555")
-        y -= 1.60
+    y = 8.6
+    for name, what, maths in entries:
+        ax.text(0.0, y, name, fontsize=13.5, va="center", ha="left",
+                family="monospace", color="#1A1A1A")
+        ax.text(3.3, y, what, fontsize=12.5, va="center", ha="left", color="#333333")
+        if maths:
+            ax.text(8.4, y, maths, fontsize=15, va="center", ha="left")
+        y -= 1.35
+
+    ax.plot([0, 10], [1.65, 1.65], color="#DDDDDD", lw=1)
+    ax.text(0.0, 1.05, "every row is measured from the window's first frame",
+            fontsize=12, va="center", ha="left", color="#333333")
+    ax.text(6.0, 1.05, r"$T_{\mathrm{rel}}(k) = T(0)^{-1}\, T(k)$",
+            fontsize=15, va="center", ha="left")
+    ax.text(0.0, 0.25, "the hand is put into room coordinates first",
+            fontsize=12, va="center", ha="left", color="#333333")
+    ax.text(6.0, 0.25, r"$T_{\mathrm{room},\,\mathrm{wrist}} = "
+                       r"T_{\mathrm{room},\,\mathrm{device}}\; T_{\mathrm{device},\,\mathrm{wrist}}$",
+            fontsize=15, va="center", ha="left")
 
     fig.savefig(dest, dpi=140, bbox_inches="tight", facecolor="white")
     plt.close(fig)
