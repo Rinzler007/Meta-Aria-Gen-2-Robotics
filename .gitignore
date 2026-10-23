@@ -96,3 +96,7 @@ env/
 # works on a fresh clone because those are committed. The PNG renders stay in git, since
 # they are a tenth of the size and GitHub shows them without anything being downloaded.
 outputs/*.ply
+
+# The pilot dataset manifest. We never used that dataset, so the list of download URLs
+# is somebody else index rather than a record of our work.
+reference/*.json

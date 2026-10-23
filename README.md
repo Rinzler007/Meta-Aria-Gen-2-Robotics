@@ -122,10 +122,10 @@ MAX_DEPTH  = 2.0
 SEARCH_RADIUS = 0.25
 ```
 
-Given a recording, a window and one click on the object, it runs these steps.
+Given a recording, a window and one pixel coordinate on the object, it runs these steps.
 
 1. **Export the window** as frames and an mp4, 120 frames at 30 fps.
-2. **Segment and track.** SAM 2 takes the click on the first frame and propagates the mask
+2. **Segment and track.** SAM 2 takes that coordinate on the first frame and propagates the mask
    through the rest, carrying a memory between frames. Masks are cached, so a second run
    skips this entirely.
 3. **Check the mask held.** Area against the opening frames, flagging anything that halves
@@ -200,14 +200,13 @@ measures about 12 cm across while the whole stack measures 34 cm and the differe
 travel. To see the object's shape, look at one frame.
 
 ## The notebooks
+| Order | File                      | What it does                                                                                  |
+| ----- | ------------------------- | --------------------------------------------------------------------------------------------- |
+| 1     | `object_pipeline.ipynb`   | **The pipeline.** Prompt, track, stereo depth, object cloud, room coordinates. One config cell  |
+| 2     | `wrist_world_frame.ipynb` | Converts the hand path into room coordinates across every recording                             |
 
-| Order | File                               | What it does                                                                                 |
-| ----- | ---------------------------------- | -------------------------------------------------------------------------------------------- |
-| 1     | `vrs_basics_hand_trajectory.ipynb` | Reads a VRS file, measures stream rates, picks the acting hand, pulls out its path and speed |
-| 2     | `device_calibration.ipynb`         | Prints the extrinsics the rest of the work depends on                                        |
-| 3     | `object_pipeline.ipynb`            | **The pipeline.** One configuration cell at the top                                          |
-| 4     | `wrist_world_frame.ipynb`          | Converts the hand path into room coordinates across every recording                          |
-| 5     | `activity_segmentation.ipynb`      | Cutting a demonstration out by hand speed                                                    |
+Neither depends on the other, so either can be run on its own. Cell outputs are committed on
+purpose, being the record of what was observed.
 
 The filenames carry no numbers, so the order column tells you how to read them. None depends
 on another, so any one can be run on its own. Cell outputs are committed on purpose, being
@@ -221,9 +220,10 @@ rerun is committed, so commit a rerun when the outputs have actually changed.
 | Tool                     | What it does                                                       | Needs recordings |
 | ------------------------ | ------------------------------------------------------------------ | ---------------- |
 | `check_recordings.py`    | Validates recordings, writes contact sheets, builds the manifest   | yes              |
-| `find_prompt.py`         | Searches for usable click points and ranks them on a contact sheet | yes              |
+| `find_prompt.py`         | Searches for usable prompt coordinates and ranks them on a sheet   | yes              |
 | `run_all_objects.py`     | Runs the pipeline over everything in `object_runs.csv`             | yes              |
 | `check_tracking.py`      | Draws frames with the mask outlined, which area alone cannot check | no               |
+| `object_pose.py`         | The object's rotation per frame, as a 4 by 4 SE(3) pose            | yes              |
 | `object_head_motion.py`  | How far the glasses moved during each window                       | yes              |
 | `grasp_intervals.py`     | Where each hand closed on something and let go                     | yes              |
 | `object_summary.py`      | Collects every object run into one table and figure                | no               |
@@ -238,7 +238,7 @@ check catches a mask collapsing onto a highlight or swallowing a table and it ca
 a mask moving to a nearby object of similar size, which keeps the area roughly intact. SAM's
 own confidence stays at 1.00 through that failure, so the model cannot report it either.
 
-**A click validated on one frame can still fail.** `tools/find_prompt.py` runs SAM on a
+**A coordinate validated on one frame can still fail.** `tools/find_prompt.py` runs SAM on a
 single frame while the pipeline runs SAM 2 over the video and they do not always choose the
 same object from the same point. A contact sheet panel is a candidate rather than an answer.
 
@@ -248,10 +248,11 @@ per frame and a translucent jug's about 1.9 cm, so a jug can come out having tra
 while staying inside a 21 cm box. Net displacement and the box diagonal depend only on
 positions, so neither accumulates this.
 
-**One object at a time.** Several would mean one click and one track each, which SAM
+**One object at a time.** Several would mean one coordinate and one track each, which SAM
 supports and which is not built.
 
-**Two steps are still manual**, the window and the click. See `docs/status.md` for what
+**Two steps are still manual**, choosing the window and reading the object's coordinate
+off a frame. See `docs/status.md` for what
 would replace them.
 
 **Depth noise smears each cloud along the viewing direction**, so an object measures deeper
@@ -261,7 +262,7 @@ frames.
 ## Layout
 
 ```
-notebooks/        the five notebooks, with their cell outputs kept
+notebooks/        the two notebooks, with their cell outputs kept
 outputs/          the deliverables: trajectories, clouds and figures
 reports/          the weekly progress reports
 docs/             status, running, deliverables, recordings, glasses runbook
@@ -270,7 +271,6 @@ requirements.txt
 recordings/       the .vrs files, 5.1 GB, ignored
 models/           the YOLO and SAM weights, 431 MB, ignored
 cache/            exported frames, mp4s and cached masks, ignored
-reference/        papers and the dataset manifest, the papers ignored
 vendor/           Meta's unmodified client SDK samples, ignored
 ```
 
@@ -281,14 +281,13 @@ or moved without breaking a path.
 
 The working copy runs to about 7.6 GB while the git history is 26 MB. GitHub refuses any
 file over 100 MB and several recordings are larger than that, so `.gitignore` excludes
-`recordings/`, `models/`, `cache/`, `vendor/`, the pdf files in `reference/` and the PLY
+`recordings/`, `models/`, `cache/`, `vendor/`, everything in `reference/` and the PLY
 clouds in `outputs/`. Git does not list those, will not stage them and cannot push them.
 
 Each exclusion stands on its own. The recordings are raw data and far too large. The weights
 download again in one line. The cache is derived and rebuilds on demand. The vendored samples
-ship with the SDK and were never edited. The papers are public downloads, while the 104 KB
-dataset manifest beside them is versioned because it records which sequences were used. The
-PLY clouds hold nothing the npz files do not.
+ship with the SDK and were never edited. The reference folder holds public downloads. The PLY
+clouds hold nothing the npz files do not.
 
 **Never run `git clean -x` in here.** The data is ignored rather than absent, which makes it
 exactly what that command deletes. The weights and the cache would come back. The recordings

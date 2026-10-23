@@ -57,13 +57,10 @@ them with what each contains, so you can see what you are missing. Ask for the f
 Read the order column rather than the filenames, which carry no numbers. Run them from the
 `notebooks` folder so each one can work the repository out from its own location.
 
-| Order | Notebook                           | Needs                                                   | Produces                                                    | Time                                 |
-| ----- | ---------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------ |
-| 1     | `vrs_basics_hand_trajectory.ipynb` | `scoop_01`                                              | `wrist_speed_segmented_clean.png`                           | 2 min                                |
-| 2     | `device_calibration.ipynb`         | `scoop_01`                                              | nothing, it prints and plots                                | 2 min                                |
-| 3     | `object_pipeline.ipynb`            | `scoop_01`, SAM weights                                 | the four `object_scoop_01_*` deliverables                   | 15 min cold, 3 min with cached masks |
-| 4     | `wrist_world_frame.ipynb`          | the twelve October recordings plus `pouring_scooping_1` | `wrist_world_frame_summary.png` and `.csv`, one path figure | 10 min                               |
-| 5     | `activity_segmentation.ipynb`      | the same thirteen                                       | `activity_segmentation.png` and `.csv`                      | 10 min                               |
+| Order | Notebook                  | Needs                        | Produces                                     | Time                                  |
+| ----- | ------------------------- | ---------------------------- | -------------------------------------------- | ------------------------------------- |
+| 1     | `object_pipeline.ipynb`   | one recording, SAM weights   | the four `object_<recording>_*` deliverables | 15 min cold, 3 min with cached masks  |
+| 2     | `wrist_world_frame.ipynb` | the twelve October recordings | `wrist_world_frame_summary.png` and `.csv`  | 10 min                                |
 
 The times are rough. They were measured on an M1 with no GPU, except the cold run of notebook 3,
 which depends on how long SAM 2 takes to propagate on your machine.
@@ -122,9 +119,9 @@ since the notebook can only hold one recording's outputs at a time.
 ### Finding a prompt point
 
 This is the one step still done by eye, because no automatic rule has been made to work.
-Deriving the click from the hand needs the fingertips and the glasses number the 21
+Deriving the coordinate from the hand needs the fingertips and the glasses number the 21
 landmarks without saying which are which, so the fingertips have to be inferred. Every way
-of inferring them moves as the hand opens and closes and the click then lands on a bowl
+of inferring them moves as the hand opens and closes and the coordinate then lands on a bowl
 or on the wearer's arm.
 
 What works:

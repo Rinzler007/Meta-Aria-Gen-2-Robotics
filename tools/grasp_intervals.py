@@ -10,11 +10,17 @@ cannot be identified. The spread of those 21 points about their own centre needs
 labels. A hand closed around a spoon handle is a more compact set of points than an open
 hand, so the spread drops on a grasp and rises on a release.
 
-This works on narrow grips and not on wide ones. A spoon and a jug give two clearly
-separated levels about 1.1 to 1.5 cm apart. A tin gives at most 1.0 cm, because a hand
-stays open around a wide cylinder and there is no closing to detect. So this reports how
-separable the signal was and declines to give intervals when it was not, rather than
-inventing a bracket from noise.
+The direction of the change depends on the girth of the object, and that is the catch. A
+hand closing on a thin handle curls, so the landmarks pull in towards their own centre and
+the spread falls. A hand taking hold of a wide tin splays instead, so the landmarks move
+apart and the spread rises. This method assumes the first, so on the tin recordings it
+picks out the quiet period after the tin has been set down and calls that the hold, which
+is backwards.
+
+The gap threshold below rejects those cases, so a wrong answer is never reported. It
+rejects them for the wrong reason though, since the tin signal is weak rather than absent.
+Detecting a sustained change in either direction would cover both kinds of grip, and that
+is the work this still needs.
 
     python3 tools/grasp_intervals.py
     python3 tools/grasp_intervals.py scoop_01 pour_02

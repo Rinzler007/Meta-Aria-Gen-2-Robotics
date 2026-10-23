@@ -152,6 +152,6 @@ as much as on identity, so an object carried away from the camera shrinks withou
 going wrong. A 2.5 times change in area is only a 1.6 times change in distance.
 
 **No flag is not a guarantee either.** A mask that moves to a nearby object of similar
-size keeps its area and the baseline comes from the opening frames, so a click that was
+size keeps its area and the baseline comes from the opening frames, so a coordinate that was
 wrong from the very first frame sets the baseline to the wrong object. Look at the frames
 every time.
