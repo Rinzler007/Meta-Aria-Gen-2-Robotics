@@ -204,7 +204,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("only", nargs="*", help="labels to draw; default is all of them")
     ap.add_argument("--row", action="store_true",
-                    help="one row instead of a grid, which is the shape a slide has room for")
+                    help="one row, which is the shape a slide has room for. The default is a grid")
     args = ap.parse_args()
 
     found = sorted(OUT.glob("object_*_clouds.npz"))
