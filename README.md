@@ -224,6 +224,7 @@ rerun is committed, so commit a rerun when the outputs have actually changed.
 | `run_all_objects.py`     | Runs the pipeline over everything in `object_runs.csv`             | yes              |
 | `check_tracking.py`      | Draws frames with the mask outlined, which area alone cannot check | no               |
 | `object_pose.py`         | The object's rotation per frame, as a 4 by 4 SE(3) pose            | yes              |
+| `auto_window.py`         | Proposes each window from the grip detection                       | no               |
 | `object_head_motion.py`  | How far the glasses moved during each window                       | yes              |
 | `grasp_intervals.py`     | Where each hand closed on something and let go                     | yes              |
 | `object_summary.py`      | Collects every object run into one table and figure                | no               |

@@ -1,14 +1,14 @@
-recording,label,start_s,prompt_x,prompt_y,note
-scoop_01,,7.6,1090,820,"spoon in the red bowl, being drawn through the cereal"
-scoop_02,,8.4,1050,760,spoon lifting clear of the red bowl
-scoop_03,,12.19,1057,770,spoon mid carry. Start later than the grasp: a window opening before the spoon is picked up loses the tracker
-pour_01,,4.28,1192,916,jug held over the blue bowl before it is raised
-pour_02,,5.87,1210,774,jug tilted mid pour over the blue bowl
-pour_03,,3.62,1194,724,jug tilted mid pour over the blue bowl
-pick_01,,2.26,1066,818,"tin held in the right hand before it is carried across. The mask area falls through the window because the tin is carried away from the camera, which the drift check flags and which is not a failure"
-pick_02,,5.13,1185,762,soup tin held up in the right hand. Same area fall as pick_01
-pick_03,,1.89,1066,795,soup tin held up in the right hand
-grip_01,,10.92,1066,698,spoon lying in the red bowl just before it is lifted across
-grip_02,,2.52,1094,620,"spoon lying in the blue bowl. The spoon is partly buried in cereal here so the cloud is thin. A window at 7.02 over the carry looks better by every number and tracks the cereal instead of the spoon, so check the frames before moving it"
-grip_03b,,4.86,1036,761,"spoon lying in the blue bowl, partly buried in cereal so the cloud is thin. A window at 13.93 looks clean under find_prompt and gives the whole red bowl under the video tracker"
-scoop_01,scoop_01_bowl,7.6,1112,749,"the red bowl, which never moves. A static object is the error bar for the moving ones, since whatever pose change it shows is error"
+recording,label,start_s,duration_s,prompt_x,prompt_y,note
+scoop_01,,7.6,4.0,1090,820,"spoon in the red bowl, being drawn through the cereal"
+scoop_02,,8.4,4.0,1050,760,spoon lifting clear of the red bowl
+scoop_03,,12.19,4.0,1057,770,spoon mid carry. Start later than the grasp: a window opening before the spoon is picked up loses the tracker
+pour_01,,4.28,4.0,1192,916,jug held over the blue bowl before it is raised
+pour_02,,5.87,4.0,1210,774,jug tilted mid pour over the blue bowl
+pour_03,,3.62,4.0,1194,724,jug tilted mid pour over the blue bowl
+pick_01,,2.26,4.0,1066,818,"tin held in the right hand before it is carried across. The mask area falls through the window because the tin is carried away from the camera, which the drift check flags and which is not a failure"
+pick_02,,5.13,4.0,1185,762,soup tin held up in the right hand. Same area fall as pick_01
+pick_03,,1.89,4.0,1066,795,soup tin held up in the right hand
+grip_01,,10.92,4.0,1066,698,spoon lying in the red bowl just before it is lifted across
+grip_02,,2.52,4.0,1094,620,"spoon lying in the blue bowl. The spoon is partly buried in cereal here so the cloud is thin. A window at 7.02 over the carry looks better by every number and tracks the cereal instead of the spoon, so check the frames before moving it"
+grip_03b,,4.86,4.0,1036,761,"spoon lying in the blue bowl, partly buried in cereal so the cloud is thin. A window at 13.93 looks clean under find_prompt and gives the whole red bowl under the video tracker"
+scoop_01,scoop_01_bowl,7.6,4.0,1112,749,"the red bowl, which never moves. A static object is the error bar for the moving ones, since whatever pose change it shows is error"

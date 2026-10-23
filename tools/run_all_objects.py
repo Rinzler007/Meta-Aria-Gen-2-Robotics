@@ -40,7 +40,7 @@ REPORT = re.compile(
     r"frame span|accumulated cloud")
 
 
-def configure(recording, label, start_s, px, py):
+def configure(recording, label, start_s, px, py, duration):
     """Rewrite the three configuration lines in the notebook, leaving its comments alone."""
     d = json.loads(NB.read_text())
     hits = 0
@@ -55,6 +55,7 @@ def configure(recording, label, start_s, px, py):
         s = re.sub(r'RECORDING\s*=\s*"[^"]*"', f'RECORDING  = "{recording}"', s)
         s = re.sub(r'LABEL\s*=\s*"[^"]*"', f'LABEL      = "{label}"', s)
         s = re.sub(r"START_S\s*=\s*[0-9.]+", f"START_S    = {start_s}", s)
+        s = re.sub(r"DURATION_S = [0-9.]+", f"DURATION_S = {duration}", s)
         s = re.sub(r"PROMPT\s*=\s*\[[^\]]*\]", f"PROMPT = [{px}, {py}]", s)
         c["source"] = s.splitlines(keepends=True)
         hits += 1
@@ -69,8 +70,11 @@ def run_one(row):
     # A row without a label names its outputs after the recording, which is what every
     # row did before a second object per recording became possible.
     label = row.get("label") or row["recording"]
-    configure(row["recording"], label, row["start_s"], row["prompt_x"], row["prompt_y"])
-    print(f"\n=== {label}  start {row['start_s']} s  "
+    # A row without a duration keeps the four seconds every row used before windows
+    # could be chosen automatically.
+    duration = row.get("duration_s") or "4.0"
+    configure(row["recording"], label, row["start_s"], row["prompt_x"], row["prompt_y"], duration)
+    print(f"\n=== {label}  start {row['start_s']} s  for {duration} s  "
           f"prompt [{row['prompt_x']}, {row['prompt_y']}] ===", flush=True)
     t0 = time.time()
     # Executing in place means the committed notebook carries the outputs of a real run,

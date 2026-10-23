@@ -26,6 +26,7 @@ Everything runs offline on saved files. Nothing has to run in real time.
 | Object point cloud                    | Working, 12 of 12 recordings    |
 | Hand path in room coordinates         | Working, 12 of 12 recordings    |
 | Finding when the object is held       | Working on 8 of 12              |
+| Choosing the window                   | Automatic, not yet applied      |
 | Choosing which object to track        | Manual, one coordinate typed in |
 | SE(3) pose, objects being carried     | Working, 12 of 12 recordings    |
 | SE(3) pose, objects at rest           | Working, one fixed pose each    |
@@ -112,11 +113,22 @@ shares very little with the current pipeline.
 
 ## What to build next, in order
 
-**1. Place the windows automatically.** `tools/grasp_intervals.py` finds when the hand takes
-hold of something and lets go, across all twelve recordings. Starting each window a
-fixed time after the grasp begins would make the three takes of a task comparable, which
-is the reason three takes of each were recorded. Note that the prompt is a pixel in the
-frame at the window start, so moving a window means finding its prompt again.
+**1. Apply the automatic windows to all twelve recordings.** The choosing is built and
+proven. `tools/auto_window.py` takes the hold from `tools/grasp_intervals.py`, trims 0.6
+seconds off each end and proposes a window. Against the twelve windows chosen by hand it
+agrees 85 per cent, and the proposals run from 2.9 to 12.4 seconds so each covers a whole
+demonstration. Where the two disagree the proposal is usually the better one, for eg. on
+scoop_03, whose hand picked window straddles the release while the proposal stops there.
+
+It was tested end to end on pick_02, which produced 87 good frames with the mask on the
+tin throughout. The pipeline takes a window length through the `duration_s` column, and a
+row without one keeps the four seconds every row used before.
+
+What stops it being applied today is the prompt. That is a pixel on the object in the
+window's first frame, so a window that moves needs `tools/find_prompt.py` run again and
+somebody to look at the contact sheet. Twelve searches at about six minutes each, plus the
+looking. The deliverables currently all use hand picked windows, which keeps them
+comparable with each other.
 
 **2. Measure the prompt rule against ground truth.** HOT3D carries true object poses with
 rendered masks across 33 objects. Deriving the coordinate from the hand was tried and does not
