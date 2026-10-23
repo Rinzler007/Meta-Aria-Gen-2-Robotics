@@ -228,6 +228,7 @@ rerun is committed, so commit a rerun when the outputs have actually changed.
 | `object_head_motion.py`  | How far the glasses moved during each window                       | yes              |
 | `grasp_intervals.py`     | Where each hand closed on something and let go                     | yes              |
 | `object_summary.py`      | Collects every object run into one table and figure                | no               |
+| `repeatability.py`       | Whether the three takes of a task give the same measurement        | no               |
 | `render_object_cloud.py` | Redraws the cloud figures from the npz                             | no               |
 | `export_ply.py`          | Rebuilds the PLY clouds, which are not in git                      | no               |
 | `export_video.py`        | Exports recordings to mp4 with timestamps burnt in                 | yes              |

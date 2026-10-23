@@ -21,9 +21,14 @@ reads 4.8 to 5.3 cm of spread while reaching for the tin and 4.4 to 5.3 cm while
 it, so there is no gap to find. Flatness separates the same recordings cleanly, moving from
 about 0.02 while reaching to about 0.13 while holding.
 
-How well it does. Across the twelve recordings the stretch it marks covers 91 per cent of
-the window a person had already picked by eye, and every recording separates into two
-levels. Spread managed eight of the twelve and refused the other four.
+How well it does. Measured once against the twelve windows a person had chosen by eye,
+before those windows were replaced by the ones this tool proposes, the stretch it marks
+covered 91 per cent of them. Every recording separates into two levels. The older spread
+feature managed eight of the twelve and refused the other four.
+
+That comparison cannot be rerun now and is not recomputed below, because the windows in
+`tools/object_runs.csv` are derived from this tool. Checking against them would be marking
+its own homework.
 
     python3 tools/grasp_intervals.py
     python3 tools/grasp_intervals.py scoop_01 pour_02
@@ -156,8 +161,10 @@ def main():
     ap.add_argument("only", nargs="*")
     a = ap.parse_args()
 
-    chosen = {r["recording"]: float(r["start_s"]) for r in csv.DictReader(RUNS.open())}
-    names = a.only or list(chosen)
+    # Every recording in the registry, since there is no longer a separate list of windows
+    # to compare against.
+    chosen = {}
+    names = a.only or [r.get("label") or r["recording"] for r in csv.DictReader(RUNS.open())]
 
     rows, panels = [], []
     for name in names:

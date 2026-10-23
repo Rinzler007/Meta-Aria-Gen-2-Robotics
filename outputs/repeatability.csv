@@ -1,0 +1,5 @@
+task,takes,net_values_cm,net_spread_pct,box_values_cm,box_spread_pct
+scoop,3,12.4 3.4 8.6,111,28.7 30.5 53.5,66
+pour,3,18.2 5.3 19.5,99,35.9 31.7 36.4,14
+pick,3,39.3 44.7 32.5,32,60.0 46.1 69.3,40
+grip,3,2.0 1.2 4.6,130,35.8 36.9 36.5,3

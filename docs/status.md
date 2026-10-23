@@ -26,7 +26,7 @@ Everything runs offline on saved files. Nothing has to run in real time.
 | Object point cloud                    | Working, 12 of 12 recordings    |
 | Hand path in room coordinates         | Working, 12 of 12 recordings    |
 | Finding when the object is held       | Working on 8 of 12              |
-| Choosing the window                   | Automatic, not yet applied      |
+| Choosing the window                   | Automatic, applied to all 12    |
 | Choosing which object to track        | Manual, one coordinate typed in |
 | SE(3) pose, objects being carried     | Working, 12 of 12 recordings    |
 | SE(3) pose, objects at rest           | Working, one fixed pose each    |
@@ -113,22 +113,33 @@ shares very little with the current pipeline.
 
 ## What to build next, in order
 
-**1. Apply the automatic windows to all twelve recordings.** The choosing is built and
-proven. `tools/auto_window.py` takes the hold from `tools/grasp_intervals.py`, trims 0.6
-seconds off each end and proposes a window. Against the twelve windows chosen by hand it
-agrees 85 per cent, and the proposals run from 2.9 to 12.4 seconds so each covers a whole
-demonstration. Where the two disagree the proposal is usually the better one, for eg. on
-scoop_03, whose hand picked window straddles the release while the proposal stops there.
+**1. Settle which window a demonstration should use.** The windows now come from the grip
+detection, cover a whole demonstration from grasp to release, and were applied to all
+twelve recordings. `tools/auto_window.py` chooses them and `tools/repeatability.py`
+measures whether that helped.
 
-It was tested end to end on pick_02, which produced 87 good frames with the mask on the
-tin throughout. The pipeline takes a window length through the `duration_s` column, and a
-row without one keeps the four seconds every row used before.
+It helped for two tasks out of four and hurt the other two:
 
-What stops it being applied today is the prompt. That is a pixel on the object in the
-window's first frame, so a window that moves needs `tools/find_prompt.py` run again and
-somebody to look at the contact sheet. Twelve searches at about six minutes each, plus the
-looking. The deliverables currently all use hand picked windows, which keeps them
-comparable with each other.
+| Task | Box diagonal across takes, four second windows | Whole demonstrations |
+| --- | --- | --- |
+| grip | 109% | 3% |
+| pour | 17% | 14% |
+| scoop | 30% | 66% |
+| pick | 34% | 40% |
+
+The grip result is the strongest repeatability evidence this project has produced. Three
+takes of the same task, measured independently, agree to 3 per
+cent.
+
+Two things have to be read alongside it. Scoop and pick got worse, so a whole demonstration
+is not automatically a better unit of comparison. And the measure matters more than the
+window: net displacement collapses towards zero on a whole demonstration, because somebody
+who picks a spoon up and puts it back has moved it nowhere, which is why its spread runs
+from 32 to 130 per cent and means
+very little.
+
+Deciding what a demonstration should be measured on is the open question. The box diagonal
+is the better of the two on hand, and nothing yet says it is the right one.
 
 **2. Check the work against ground truth, using the Aria Gen 2 Pilot Dataset.** Nothing
 here has been compared with a known correct answer. Depth was checked against the hand
