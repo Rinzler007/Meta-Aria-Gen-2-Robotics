@@ -248,8 +248,9 @@ per frame and a translucent jug's about 1.9 cm, so a jug can come out having tra
 while staying inside a 21 cm box. Net displacement and the box diagonal depend only on
 positions, so neither accumulates this.
 
-**One object at a time.** Several would mean one coordinate and one track each, which SAM
-supports and which is not built.
+**One object at a time per run.** A recording can carry several, each as its own row in
+`tools/object_runs.csv` with a `label` naming its outputs, but they are tracked one run at
+a time rather than together.
 
 **Two steps are still manual**, choosing the window and reading the object's coordinate
 off a frame. See `docs/status.md` for what

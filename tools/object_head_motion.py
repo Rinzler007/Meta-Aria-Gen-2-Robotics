@@ -32,8 +32,15 @@ RECORDINGS = REPO / "recordings"
 
 
 def vrs_for(name):
-    """Recordings carry a timestamp in the filename, so we match on the stem instead."""
+    """Which recording a result came from.
+
+    Output names mostly match their recording. One recording can hold a second object
+    though, named for eg. scoop_01_bowl, so when the full name finds nothing we drop the
+    trailing part and look again.
+    """
     hits = sorted(RECORDINGS.glob(f"{name}_*.vrs"))
+    if not hits and "_" in name:
+        hits = sorted(RECORDINGS.glob(f"{name.rsplit('_', 1)[0]}_*.vrs"))
     return hits[0] if hits else None
 
 

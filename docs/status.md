@@ -27,7 +27,8 @@ Everything runs offline on saved files. Nothing has to run in real time.
 | Hand path in room coordinates         | Working, 12 of 12 recordings    |
 | Finding when the object is held       | Working on 8 of 12              |
 | Choosing which object to track        | Manual, one coordinate typed in |
-| Full SE(3) pose of a held object      | Working, 12 of 12 recordings    |
+| SE(3) pose, objects being carried     | Working, 12 of 12 recordings    |
+| SE(3) pose, objects at rest           | Working, one fixed pose each    |
 | Accuracy against known ground truth   | Not measured                    |
 
 The pipeline is `notebooks/object_pipeline.ipynb`. Given a recording, a four second window
@@ -79,8 +80,16 @@ quantity wanders by 1.5 to 5 cm on eleven of the twelve. It reaches 15.6 cm on s
 whose window straddles the moment the spoon is put down, so the check finds the one case
 where the assumption genuinely fails.
 
-One gap remains. An object nobody is holding has no hand to read, and the professor asked
-for static objects too.
+An object at rest needs no hand at all. Its pose is one constant matrix, and the useful
+question is how far the measurement wanders when the answer is known to be zero. The red
+bowl in `scoop_01` answers that. Seen from the glasses it appears to travel through a box
+13.9 cm across purely because the wearer's head moves. Converted into room coordinates
+that falls to 6.1 cm, with a median wander of 0.69 cm. Those are the error bars for every
+object position here, and the drop from 13.9 to 6.1 is the room frame conversion measured
+on a thing that genuinely never moved.
+
+Carried and resting are told apart by whether the object moves further than `STATIC_CM`,
+which is drawn from these recordings rather than derived.
 
 Recovering the rotation from the object's own points was tried first and does not work on
 this data. Chaining frame to frame fits forward through a window and back should return to
@@ -103,26 +112,13 @@ shares very little with the current pipeline.
 
 ## What to build next, in order
 
-**1. Finish the SE(3) pose.** The professor has asked for a 4 by 4 pose per object,
-covering objects that move and objects that sit still. `tools/object_pose.py` delivers the
-rotation for anything held, taken from the wrist. Two pieces are missing.
-
-The object's position rather than the hand's needs the fixed offset between wrist and
-object, which is one transform per grip and can be estimated from the object points in the
-first frame once the rotation is known.
-
-A static object has no hand to read, so it needs a different source entirely. Registering
-its points against the first frame is the obvious route, and the drift measurement in
-`tools/object_pose.py` shows why that has to be done against an accumulating model rather
-than frame to frame.
-
-**2. Place the windows automatically.** `tools/grasp_intervals.py` already finds when the
+**1. Place the windows automatically.** `tools/grasp_intervals.py` already finds when the
 hand closes on something and lets go, in 8 of the 12 recordings. Starting each window a
 fixed time after the grasp begins would make the three takes of a task comparable, which
 is the reason three takes of each were recorded. Note that the prompt is a pixel in the
 frame at the window start, so moving a window means finding its prompt again.
 
-**3. Make grasp detection work in both directions.** The method watches how compact the 21
+**2. Make grasp detection work in both directions.** The method watches how compact the 21
 hand landmarks are and assumes a grasp makes the hand more compact. That holds for a thin
 handle, where the fingers curl. It is reversed for a wide tin, where the fingers splay
 around it and the landmarks move further apart, so the method picks out the quiet period
@@ -130,12 +126,12 @@ after the tin is set down and calls that the hold. The gap threshold currently r
 those recordings, so no wrong answer is reported, but it rejects them for the wrong reason.
 Detecting a sustained change of either sign would cover both kinds of grip.
 
-**4. Measure the prompt rule against ground truth.** HOT3D carries true object poses with
+**3. Measure the prompt rule against ground truth.** HOT3D carries true object poses with
 rendered masks across 33 objects. Deriving the coordinate from the hand was tried and does not
 transfer between grips and without ground truth there is no way to tell a near miss from
 a wild one.
 
-**5. Switch to the `vio_high_frequency` stream.** It runs at 794.1 Hz against the 10 Hz
+**4. Switch to the `vio_high_frequency` stream.** It runs at 794.1 Hz against the 10 Hz
 stream in use, removing the 50 ms gap between a pose and a frame and it reports the device
 pose directly without the chaining step. The cheapest real improvement available.
 

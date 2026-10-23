@@ -45,14 +45,26 @@ Where the position comes from. The pipeline already puts the object's own points
 coordinates, so the centre of those points is the object's position and no offset is
 needed to get it. The pose written here is that position carrying the wrist's rotation.
 
-How we know the grip held. Expressed in the wrist's own frame, a firmly held object sits
-at a fixed offset, so whatever that quantity does across the window measures the
-assumption directly. It settles 10 to 20 cm from the wrist and wanders by 1.5 to 5 cm on
-eleven of the twelve recordings. The exception is scoop_03 at 15.6 cm, whose window
-straddles the moment the spoon is put down, so there the grip genuinely breaks.
+Objects that never move are handled separately and need no hand at all. If something stays
+put then its pose is one constant matrix, and the only useful question is how far the
+measurement wanders when the right answer is known to be zero. The red bowl in scoop_01
+answers that. Seen from the glasses it appears to travel through a box 13.9 cm across,
+purely because the wearer's head moves. Converted into room coordinates that falls to
+6.1 cm, with a median wander of 0.69 cm and a worst frame of 4.62 cm. Those are the error
+bars for every object position this project reports.
 
-The one thing it cannot do is say anything about an object nobody is holding, since there
-is no hand to read.
+How a held object is told from a resting one. By whether it moves. Anything whose own
+motion stays inside the static error gets a constant pose, and anything that exceeds it is
+treated as carried and takes the wrist's rotation. The cut sits at STATIC_CM below, drawn
+from these recordings, where resting objects measure about 6 cm and carried ones 15 cm and
+upwards.
+
+What the grip check does and does not tell you. A held object sits at a fixed offset from
+the wrist, so drift in that offset shows the grip breaking, which is how scoop_03 is caught
+at 15.6 cm where its window straddles the spoon being put down. A small number does not
+prove the object was held. During scoop_01 the hand works inside the red bowl, so the bowl
+holds a nearly fixed offset from the wrist too and passes the same test. Use it to reject,
+never to confirm.
 """
 
 import argparse
@@ -71,6 +83,12 @@ RECORDINGS = REPO / "recordings"
 RUNS = REPO / "tools" / "object_runs.csv"
 
 WINDOW_S = 4.0
+
+# Below this much movement in the room an object counts as resting. A stationary object
+# measured 6.1 cm across its box here, carried ones 15 cm and more, so the line has room on
+# both sides. It is drawn from twelve recordings rather than derived, so treat it as a rule
+# of thumb and look at the number beside it.
+STATIC_CM = 10.0
 
 
 def turn_degrees(R):
@@ -137,10 +155,12 @@ def main():
     runs = list(csv.DictReader(RUNS.open()))
     done = 0
     for r in runs:
-        name = r["recording"]
+        # A row may name its outputs separately from the recording it reads, which is how
+        # one recording can carry two objects.
+        name = r.get("label") or r["recording"]
         if a.only and name not in a.only:
             continue
-        vrs = sorted(RECORDINGS.glob(f"{name}_*.vrs"))
+        vrs = sorted(RECORDINGS.glob(f"{r['recording']}_*.vrs"))
         if not vrs:
             print(f"{name}: no recording, skipped")
             continue
@@ -179,6 +199,15 @@ def main():
             o = np.array(offsets)
             wander = float(np.median(np.linalg.norm(o - np.median(o, axis=0), axis=1)) * 100)
 
+        # Did this object move at all ? A resting one owes nothing to the hand, so it gets
+        # one constant pose instead of the wrist's rotation frame by frame.
+        span = (np.linalg.norm(cx.max(axis=0) - cx.min(axis=0)) * 100) if len(cx) else float("nan")
+        resting = span == span and span < STATIC_CM
+        if resting:
+            hold = np.eye(4)
+            hold[:3, 3] = np.median(cx, axis=0)
+            obj = [hold.copy() for _ in obj]
+
         inv0 = np.linalg.inv(obj[0])
         rel = [inv0 @ T for T in obj]
 
@@ -196,10 +225,17 @@ def main():
                            + [round(float(v), 6) for v in T[:3, :4].ravel()])
 
         turn = np.array([turn_degrees(T[:3, :3]) for T in rel])
-        moved = np.array([np.linalg.norm(T[:3, 3]) for T in rel]) * 100
-        flag = "" if (np.isnan(wander) or wander < 8) else "   GRIP SLIPPED, pose unreliable"
-        print(f"{name:<10} turned up to {turn.max():5.1f} deg, moved {moved.max():5.1f} cm, "
-              f"grip wander {wander:4.1f} cm{flag}")
+        if resting:
+            # The scatter of a thing that never moves is the measurement error, so that is
+            # what gets reported rather than a rotation it never performed.
+            scat = float(np.median(np.linalg.norm(cx - np.median(cx, axis=0), axis=1)) * 100)
+            print(f"{name:<14} resting, span {span:5.1f} cm. One fixed pose. "
+                  f"Position scatter {scat:4.2f} cm, which is the measurement error")
+        else:
+            moved = np.array([np.linalg.norm(T[:3, 3]) for T in rel]) * 100
+            flag = "" if (np.isnan(wander) or wander < 8) else "   GRIP SLIPPED, pose unreliable"
+            print(f"{name:<14} carried, turned up to {turn.max():5.1f} deg, moved {moved.max():5.1f} cm, "
+                  f"grip wander {wander:4.1f} cm{flag}")
         done += 1
 
     if not done:

@@ -77,7 +77,10 @@ def main():
     rows = []
     for p in files:
         name = re.sub(r"^object_|_trajectory\.csv$", "", p.name)
-        task = name.rsplit("_", 1)[0]
+        # The task is the first word of the name. A name carrying a third part, for eg.
+        # scoop_01_bowl, is a second object from the same recording rather than a take of
+        # the task, so it is shown but kept out of the per task spread below.
+        task = name.split("_")[0]
         r = dict(recording=name, task=task, **measures(p))
         h = head.get(name)
         # Without the head figures we still write the columns, empty, so the file keeps
@@ -148,7 +151,9 @@ def main():
     # work it out here rather than leaving it to be eyeballed off the table.
     print()
     for task in TASKS:
-        t = [r for r in rows if r["task"] == task]
+        # Takes only, so a second object tracked from the same recording does not get
+        # counted as a fourth take of its task.
+        t = [r for r in rows if r["task"] == task and r["recording"].count("_") == 1]
         if len(t) < 2:
             continue
         v = np.array([r["net_room_cm"] for r in t])
