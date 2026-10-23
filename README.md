@@ -36,7 +36,7 @@ three ways.
 | Contact found from the object | 97 to 100% of frames on the six carried objects |
 | The same, scored on an outside recording | 67.2% agreement, 93.8% of their frames caught |
 | Position error, measured on a still object | 6.1 cm box |
-| Object model width, against a 25 to 93 cm stack | 12 to 24 cm, jugs 45 to 52 |
+| Object model width, against a 25 to 77 cm stack | 14 to 24 cm, jugs 47 to 52 |
 
 **The hand reading is the firmest.** The glasses measure from a camera on your head. Your head turns to follow your hand as you reach. Both move at once, so a recording
 understates the movement. Measured against the room it comes out 1.41 times

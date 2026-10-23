@@ -81,6 +81,8 @@ OUT = REPO / "outputs"
 RECORDINGS = REPO / "recordings"
 RUNS = REPO / "tools" / "object_runs.csv"
 
+# The window length used when a row of tools/object_runs.csv does not carry one. Every row
+# does carry one today, so this is the fallback for a hand written row.
 WINDOW_S = 4.0
 
 # Below this much movement in the room an object counts as resting. A stationary object
@@ -323,7 +325,15 @@ def main():
             print(f"{name}: no recording, skipped")
             continue
         t0 = float(r["start_s"])
-        ts, poses = wrist_poses(vrs[0], t0, t0 + WINDOW_S)
+        # The window has to be the one the pipeline actually tracked. Every row of
+        # tools/object_runs.csv carries its own length, chosen by tools/auto_window.py to
+        # cover one demonstration from grasp to release, and those run from 2.9 to 11.3
+        # seconds. A fixed four seconds here was left over from when every window was four
+        # seconds long. It left eleven of the thirteen pose files describing a different
+        # stretch of time than the trajectory beside them, and on pick_02 it reported
+        # 56 cm of movement over a window whose tracked part only moved 45.
+        duration = float(r.get("duration_s") or WINDOW_S)
+        ts, poses = wrist_poses(vrs[0], t0, t0 + duration)
         if len(poses) < 5:
             print(f"{name}: too few wrist samples in the window, skipped")
             continue

@@ -93,10 +93,10 @@ Missing more than half the frames is still not good enough to drop a person from
 object the cameras could see, so the shape of the thing and the path it took sit tangled in
 the same file. `tools/object_model.py` separates them by carrying every frame's points back
 into the object's own frame and it now does that for all thirteen windows. A spoon comes
-out 12 to 20 cm across, a soup tin 14 to 16 and the red bowl 24, against stacks of 25 to
-93 cm. Those are the right sizes for those objects.
+out 14 to 22 cm across, a soup tin 14 to 16 and the red bowl 24, against stacks of 25 to
+77 cm. Those are the right sizes for those objects.
 
-A jug comes out 45 to 52 cm, which is two to three times what a jug measures. The jug is
+A jug comes out 47 to 52 cm, which is two to three times what a jug measures. The jug is
 the object that turns most while it is carried, so it is the one most exposed to the
 rotation being rough. The rotation comes from the wrist, which is right about how far the
 object turned while being too rough to lay two views of a surface on top of each other. The
@@ -104,8 +104,8 @@ grip check in `tools/object_pose.py` shows the object sliding 1.5 to 5 cm inside
 across a window and at the 15 cm or so between wrist and object that is around 20 degrees.
 
 `tools/object_model_refine.py` corrects each frame against the model built so far, which
-brings `pour_02` from 46.5 cm to 37.6 and `pour_03` from 52.1 to 43.7. It changes the
-spoons and the tins by a centimetre either way, so the wrist rotation was already good
+brings all three jugs to 45 cm. It changes the spoons and the tins by a centimetre or two
+either way, so the wrist rotation was already good
 enough for them. The jugs are still too wide, so this is improved and not finished.
 
 **Grip detection from the hand's shape does not generalise and it has been replaced.** It
@@ -183,8 +183,8 @@ of comparison. Finding a measure that holds for all four tasks is the open quest
 
 **2. Make the object model work for a jug.** The spoons, tins and the bowl come out at
 their real sizes. The jugs come out two to three times too wide and the rotation is why.
-`tools/object_model_refine.py` already takes 9 cm off two of the three by fitting each
-frame against the model built so far. It is not enough.
+`tools/object_model_refine.py` already brings all three to 45 cm by fitting each frame
+against the model built so far. It is not enough.
 
 The fits sit a median of 0.7 to 3.0 mm from the model, which is far tighter than the model
 is wide. A fit settling snugly in the wrong place is what a smooth surface does, so more

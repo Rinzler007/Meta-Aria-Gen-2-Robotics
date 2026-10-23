@@ -119,16 +119,16 @@ finish is a cross.
 
 | Object | Stack, the object and its journey together | Pooled into the object's frame |
 | --- | --- | --- |
-| Spoons | 34 to 43 cm | 12 to 20 cm |
+| Spoons | 34 to 43 cm | 14 to 22 cm |
 | Soup tins | 56 to 77 cm | 14 to 16 cm |
 | Red bowl, which never moves | 25 cm | 24 cm |
-| Jugs | 54 to 60 cm | 45 to 52 cm |
+| Jugs | 54 to 60 cm | 47 to 52 cm |
 
 The first three are the right sizes for those objects. The jugs are two to three times too
 wide, because a jug turns more than anything else here while being carried and the rotation
 comes from the wrist, which is too rough to lay two views of a surface on top of each
-other. `tools/object_model_refine.py` fits each frame to the model built so far and takes
-about 9 cm off two of the three. They are still too wide.
+other. `tools/object_model_refine.py` fits each frame to the model built so far and brings
+all three jugs to 45 cm. They are still too wide.
 
 The bowl barely changes because it never moves, so its stack was already the object.
 
