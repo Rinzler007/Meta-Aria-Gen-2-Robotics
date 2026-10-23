@@ -151,7 +151,7 @@ def main():
         d_model = width_cm(pooled)
 
         # A model wider than the stack it came from has been scattered by the pose, not
-        # assembled by it, so it is measured and discarded rather than written out.
+        # assembled by it, so it is measured and discarded. Nothing is written out.
         better = d_model < d_stack
         if better:
             np.savez_compressed(OUT / f"object_{name}_model.npz",

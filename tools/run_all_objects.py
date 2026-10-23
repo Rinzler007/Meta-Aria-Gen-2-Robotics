@@ -19,7 +19,7 @@ it with --notebook to execute a scratch copy, so a run on a recording that is no
 not leave its outputs inside the committed notebook.
 
 Masks are cached per recording and window, so a second run skips the slow part and takes
-a couple of minutes rather than a quarter of an hour. That is what makes it reasonable to
+a couple of minutes. A first run takes a quarter of an hour. That is what makes it reasonable to
 re-run the whole set after a change to the pipeline, which is the point of having this.
 """
 
@@ -92,8 +92,8 @@ def run_one(row, nb):
         print(f"=== {label} FAILED after {time.time() - t0:.0f} s ===", flush=True)
         return False
 
-    # We read the numbers back out of the executed notebook rather than reprinting
-    # anything we were carrying, so what appears here is what the run actually produced.
+    # We read the numbers back out of the executed notebook. Nothing we were carrying gets
+    # reprinted, so what appears here is what the run actually produced.
     d = json.loads(nb.read_text())
     for c in d["cells"]:
         for o in c.get("outputs", []):

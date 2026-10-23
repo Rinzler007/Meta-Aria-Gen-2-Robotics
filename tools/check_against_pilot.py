@@ -26,7 +26,7 @@ by guessing. Running it on the left hand instead gives 47.5 per cent.
 
 Two numbers say why. The flatness levels separate by 0.056 on their recording against 0.073
 to 0.144 on ours, so the signal is weaker. It comes out as 85 separate stretches where our
-recordings each give one, so it is chattering rather than finding a demonstration.
+recordings each give one, so it is chattering. It has found no demonstration.
 
 The honest reading is that the method was built on twelve deliberate bench tasks where an
 object is picked up, carried and set down. Cooking is continuous two handed work with many

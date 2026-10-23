@@ -54,7 +54,7 @@ them with what each contains, so you can see what you are missing. Ask for the f
 
 ## The notebooks, in order
 
-Read the order column rather than the filenames, which carry no numbers. Run them from the
+Read the order column. The filenames carry no numbers. Run them from the
 `notebooks` folder so each one can work the repository out from its own location.
 
 | Order | Notebook                  | Needs                        | Produces                                     | Time                                  |
@@ -165,6 +165,7 @@ is a true result and a useless demonstration.
 | `tools/check_contact_against_pilot.py`  | Scores the object distance contact detection against outside labels.               | no, it reads the pilot data |
 | `tools/prompt_rule.py <pilot folder>`   | Scores rules that place the prompt coordinate from the hand.                       | no, it reads the pilot data |
 | `tools/gaze_prompt.py <pilot folder>`   | Scores rules that place it using where the wearer is looking.                      | no, it reads the pilot data |
+| `tools/propose_prompt.py`               | Applies the winning rule to our own recordings and checks it against the masks.    | yes                    |
 | `tools/object_summary.py`               | Collects every object run into one table and one figure.                           | no                     |
 | `tools/repeatability.py`                | Whether the three takes of a task give the same measurement.                       | no                     |
 | `tools/auto_window.py`                  | Proposes each window from the grip detection.                                       | no                     |
@@ -173,7 +174,7 @@ is a true result and a useless demonstration.
 | `tools/export_ply.py`                   | Rebuilds the PLY clouds from the same npz files. They are deliberately not in git. | no                     |
 | `tools/export_video.py`                 | Exports recordings to shareable mp4s in `videos/`, with timestamps burnt in.       | yes                    |
 
-Regenerate the manifest after adding recordings rather than editing it by hand.
+Regenerate the manifest after adding recordings. Editing it by hand will not survive.
 
 ### The whole procedure, start to finish
 
@@ -280,6 +281,13 @@ python3 tools/prompt_rule.py reference/pilot_cook_0           # the prompt, from
 python3 tools/gaze_prompt.py reference/pilot_cook_0           # the prompt, with the eyes
 ```
 
+The rule those last two settle on can then be pointed at our own recordings, where the
+cached masks say whether each proposal landed on the object a person picked:
+
+```bash
+python3 tools/propose_prompt.py --sheet
+```
+
 Scoring the contact detection needs our tracker run on their recording first, which
 `tools/pilot_runs.csv` sets up. The scratch notebook keeps their outputs out of the
 committed one:
@@ -301,8 +309,8 @@ devices being found.
 stored certificate and locks you out until somebody with the Companion App re-approves it.
 Use `aria_gen2 auth check` to confirm an existing pairing instead.
 
-**Never run `git clean -x` in this repository.** The recordings are ignored rather than
-absent, which makes them exactly what that command deletes. The weights and the cache would
+**Never run `git clean -x` in this repository.** The recordings sit on disk while git
+ignores them, which makes them exactly what that command deletes. The weights and the cache would
 come back on their own. The 5.1 GB of recordings would not.
 
 **Never run `aria_gen2 recording delete-all`.** The glasses are shared lab equipment and
@@ -315,4 +323,4 @@ writes a blank white image.
 
 Python 3.12.14 on macOS with no GPU. The virtual environment lives outside the repository
 at `~/projectaria_gen2_python_env`. Every pin in `requirements.txt` was read out of that
-environment rather than chosen, so each one is a version that has genuinely worked.
+environment, so each one is a version that has genuinely worked. Nobody picked them.

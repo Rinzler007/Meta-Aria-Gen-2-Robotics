@@ -38,7 +38,7 @@ because that is easier to read off a figure.
 
 | Column                             | Meaning                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------- |
-| `frame`                            | 0 to 119, counting from the start of the window rather than the recording |
+| `frame`                            | 0 to 119, counting from the start of the window, never from the recording |
 | `time_s`                           | Seconds from the first colour frame of the recording                      |
 | `n_points`                         | How many 3D points were found on the object in this frame                 |
 | `device_x`, `device_y`, `device_z` | The object centre as the glasses see it                                   |
@@ -56,8 +56,8 @@ natively, so it is what you get if you use their output without thinking about i
 while recording, which tracks where the glasses are. Chaining that with the object position
 takes the head motion back out, so an object that does not move keeps the same numbers.
 
-A robot learning the movement needs the room frame. The device frame is included because
-having both is what lets anybody check the correction rather than take it on trust.
+A robot learning the movement needs the room frame. The device frame is included so that
+anybody can check the correction for themselves. Nobody has to take it on trust.
 
 ## The point clouds
 
@@ -153,15 +153,15 @@ frames and the translucent jug's about 1.9 cm, nine times as much, so the jug co
 having travelled 287 cm while staying inside a 21 cm box. A large transparent object
 presents a different set of stereo matchable pixels every frame, so the average of those
 points wanders even when the object is nearly still. Net displacement and the box diagonal
-depend only on positions rather than on the steps between them, so neither accumulates
-this.
+depend only on positions. The steps between them never enter either number, so neither
+accumulates this.
 
 **The ratio column is not the object's version of the wrist's 1.41.** Read it alongside
 the head motion column beside it. An object on a table owes the head nothing, so turning
 your head while it sits still makes the glasses record a large movement for something that
-never moved and the room frame conversion then shrinks that movement rather than growing
-it. The ratio therefore measures the conversion mixed with head motion rather than the
-conversion alone. `tools/object_summary.py` prints this whenever it runs.
+never moved and the room frame conversion then shrinks that movement. On the wrist it
+grows it. The ratio therefore measures the conversion mixed with head motion. It says
+nothing about the conversion on its own. `tools/object_summary.py` prints this whenever it runs.
 
 ## Checking a run before you trust it
 
@@ -181,7 +181,7 @@ python3 tools/check_tracking.py scoop_01
 That draws eight frames spread across the window with the mask outlined on each, into
 `cache/tracking_<recording>_<window>.png`.
 
-**A flag is a request to look rather than a verdict.** Apparent area depends on distance
+**A flag is a request to look. It is not a verdict.** Apparent area depends on distance
 as much as on identity, so an object carried away from the camera shrinks without anything
 going wrong. A 2.5 times change in area is only a 1.6 times change in distance.
 

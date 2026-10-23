@@ -20,7 +20,7 @@ middle of the hand on its own gets 38 per cent. Stepping further out gets steadi
 reaching 5 per cent at 9 cm, so the old idea of reaching past the fingertips to find the
 object is wrong. A held object overlaps the hand holding it.
 
-Read 39 per cent against a ceiling rather than against 100. The hand's own middle lands on
+Read 39 per cent against a ceiling. Reading it against 100 would be unfair. The hand's own middle lands on
 the labelled hand only 56 per cent of the time, because hand tracking and labels disagree
 and because a hand is often half hidden behind what it holds. So the rule reaches roughly
 seventy per cent of what is available. It still fails two frames in three.

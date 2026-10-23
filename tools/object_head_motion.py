@@ -5,8 +5,8 @@ Any object figure measured against the glasses has to be read alongside this. Th
 and the head belong to the same person, so the head follows the hand and the difference
 between them stays small and fairly consistent. An object on a table owes the head
 nothing. Turn your head a lot while the object barely moves and the glasses record a large
-movement for a stationary object, so converting to room coordinates shrinks that movement
-rather than growing it.
+movement for a stationary object, so converting to room coordinates shrinks that movement.
+On the wrist the same conversion grows it.
 
 That is why the object's room-to-glasses ratio is not a stable number while the wrist's
 is. Head travel per window is what explains the difference.

@@ -23,9 +23,17 @@ wanders over a second. It does not work and the number is reported without being
 one second a hand barely moves, so a hand resting beside a bowl on the table holds just as
 fixed an offset as a hand carrying it. Measured over the thirteen windows the wander runs
 0.5 to 2.3 cm and the static red bowl reads 0.92 cm while a carried tin reads 0.51 cm, so
-the two cases are the wrong way round. It still rises when a grip actually breaks, which is
-how `tools/object_pose.py` catches scoop_03 at 15.6 cm over a four second window, so it is
-a check on a grip you already believe in and not a way to find one.
+the two cases are the wrong way round.
+
+A longer window is the obvious answer and it was tried. `--wander-sweep` measures the same
+quantity at one, two, three, four and six seconds. The static bowl stays below the carried
+tins at every one of them, reading 1.30 cm at six seconds against 1.48 and 1.67 for two of
+the picks. Nothing separates and nothing is going to, because the number is dominated by
+the object's centre shifting as the visible surface changes and not by the arm travelling.
+
+It still rises when a grip actually breaks, which is how `tools/object_pose.py` catches
+scoop_03 at 15.6 cm over a four second window, so it is a check on a grip you already
+believe in and not a way to find one.
 
 Why that should travel better than a hand shape. A distance in centimetres means the same
 thing in our lab and in anybody's kitchen. Its threshold is physical: fingers in contact
@@ -348,9 +356,44 @@ def run_one(label, recording):
     }
 
 
+def sweep(picked):
+    """Print the wrist offset wander at several window lengths, for every window.
+
+    This exists to settle one question and it answers it in the negative. If holding showed
+    up as a steadier offset than touching, there would be some length of window where the
+    static red bowl reads clearly higher than the objects that were carried. There is not.
+    """
+    lengths = (1.0, 2.0, 3.0, 4.0, 6.0)
+    print(f"{'object':<16} " + " ".join(f"{l:>5.0f}s" for l in lengths))
+    for label, recording in picked:
+        traj = OUT / f"object_{label}_trajectory.csv"
+        vrs = sorted(RECORDINGS.glob(f"{recording}_*.vrs"))
+        if not traj.exists() or not vrs:
+            continue
+        rows = list(csv.DictReader(traj.open()))
+        t = np.array([float(r["time_s"]) for r in rows])
+        centres = np.array([[float(r["world_x"]), float(r["world_y"]), float(r["world_z"])]
+                            for r in rows])
+        provider, first_ns, vio_ts, vio_mats = room_from_device(vrs[0])
+        hands = hand_points_in_room(provider, first_ns, vio_ts, vio_mats)
+        offsets = wrist_frame_offsets(t, centres, hands, "right")
+        cells = []
+        for length in lengths:
+            w = wander_cm(t, offsets, length)
+            w = w[~np.isnan(w)]
+            cells.append(f"{np.median(w):5.2f}" if len(w) else "    .")
+        print(f"{label:<16} " + " ".join(cells))
+    print()
+    print("scoop_01_bowl never moves. If the offset told holding from touching it would be")
+    print("the highest row at some length. It is one of the lowest at every length, so the")
+    print("test is the wrong way round and no window length repairs it.")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("only", nargs="*", help="labels to run; default is all of them")
+    ap.add_argument("--wander-sweep", action="store_true",
+                    help="measure the wrist offset wander at several window lengths and stop")
     args = ap.parse_args()
 
     runs = list(csv.DictReader(RUNS.open()))
@@ -362,6 +405,10 @@ def main():
         picked.append((label, r["recording"]))
     if not picked:
         sys.exit("nothing to run")
+
+    if args.wander_sweep:
+        sweep(picked)
+        return
 
     results = []
     for label, recording in picked:

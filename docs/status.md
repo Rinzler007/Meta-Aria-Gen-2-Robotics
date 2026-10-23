@@ -195,13 +195,25 @@ it and neither should any single pair of frames.
 **3. Stop the contact detection over-calling.** It catches 93.8 per cent of the frames
 Meta's labels mark and marks 73.7 per cent of frames against their 46.7. The extra frames
 are the hand lingering near the object after setting it down. Distance alone cannot tell
-those apart. Whether the object moves with the hand would and the version of that test
-tried here does not work, because over a second a still hand beside a still object holds a
-fixed offset too. A longer window is the obvious next thing to measure.
+those apart.
 
-**4. Build the gaze interface.** `tools/gaze_prompt.py` shows the signal is there. Nothing
-turns it into a system that picks an object. That is the other half of what the glasses can
-do and it is the largest piece of work left.
+Whether the object moves with the hand ought to. It does not. The measurement is in
+`tools/grip_from_object.py --wander-sweep`. The static red bowl should look the least held
+of anything here. It reads among the steadiest at every window length from one second to
+six, 1.30 cm at six seconds against 1.48 and 1.67 for two of the carried tins. The number
+is dominated by the object's centre shifting as its visible surface changes. Something that
+measures the object's motion without going through its centre is what this needs.
+
+**4. Tell one object from another where the work is happening.**
+`tools/propose_prompt.py` already finds the right place in almost every window. It picks
+the wrong object out of that place whenever the target is a spoon inside a bowl. Nothing
+here distinguishes the objects in a cluster. A caregiver's kitchen is clusters all the
+way down.
+
+**5. Build the gaze interface.** `tools/gaze_prompt.py` and `tools/propose_prompt.py` show
+the signal is there and apply it to a still frame. Nothing turns it into a system somebody
+uses. That is the other half of what the glasses can do and it is the largest piece of work
+left.
 
 ## Ground truth and what it settled
 

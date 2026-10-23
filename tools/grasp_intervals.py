@@ -49,13 +49,13 @@ RECORDINGS = REPO / "recordings"
 RUNS = REPO / "tools" / "object_runs.csv"
 
 # Hand poses arrive at 30 Hz, so this averages over about a third of a second. We want a
-# change that lasts rather than a single sample dip and a grasp is not that quick.
+# change that lasts. A single sample dip is noise and a grasp is not that quick.
 SMOOTH = 9
 
 # Below this the two levels are too close together to call. The line is drawn from our
 # twelve recordings, where the spoon and the jug separate by 1.05 cm or more while the tin
-# manages at most 0.98, so it is a rough guide rather than a calibrated threshold and
-# pick_01 sits close enough to it to prove the point.
+# manages at most 0.98, so read it as a rough guide. Nothing calibrated it, and pick_01
+# sits close enough to it to prove the point.
 MIN_GAP = 0.04
 
 # An interval shorter than this is not a demonstration of anything. It is the hand passing
@@ -69,7 +69,7 @@ def spread_series(vrs):
     hid = p.get_stream_id_from_label("handtracking")
     rgb = p.get_stream_id_from_label("camera-rgb")
     # Everything in this project is timed from the first colour frame, so hand poses get
-    # shifted onto that origin here rather than being left on their own clock.
+    # shifted onto that origin here. Leaving them on their own clock would misalign them.
     first = p.get_image_data_by_index(rgb, 0)[1].capture_timestamp_ns
 
     found = {}
@@ -132,7 +132,7 @@ def two_levels(sm, bins=64):
 
 def intervals(ts, sm, cut, gap, held_above=True):
     """Stretches where the hand is closed, with hysteresis so it cannot chatter at the cut."""
-    # Two thresholds rather than one. A single line would have the state flipping back and
+    # Two thresholds. A single line would have the state flipping back and
     # forth on every wobble while the signal sits near it, chopping one grasp into a dozen.
     # Holding raises flatness, so crossing upward starts a hold. The two thresholds sit
     # either side of the cut so the state cannot chatter while the signal hovers on it.
@@ -210,8 +210,8 @@ def main():
         w.writeheader()
         w.writerows(rows)
 
-    # Six across rather than three, because a figure twice as tall as it is wide cannot be
-    # read on a slide or a page. This shape fills the width instead of the height.
+    # Six across, because a figure twice as tall as it is wide cannot be read on a slide or
+    # a page. Three across would give exactly that. This shape fills the width.
     cols = 6 if len(panels) > 6 else len(panels)
     nrows = (len(panels) + cols - 1) // cols
     fig, axes = plt.subplots(nrows, cols, figsize=(3.3 * cols, 2.7 * nrows), sharey=True)

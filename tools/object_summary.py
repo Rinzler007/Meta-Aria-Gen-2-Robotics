@@ -4,7 +4,7 @@
 The pipeline writes four files per recording and prints its numbers as it goes, which is
 fine for one recording and useless for twelve. This reads the trajectories back off disk
 and puts them side by side, so a claim about the object results is a claim about all of
-them rather than about whichever one was run last.
+them. Whichever one was run last has no special standing.
 
     python3 tools/object_summary.py
 
@@ -24,8 +24,8 @@ import matplotlib.pyplot as plt
 REPO = Path(__file__).resolve().parent.parent
 OUT = REPO / "outputs"
 
-# Each task gets its own colour so the figure can be read by task rather than by row and
-# the order here is the order the recordings were made in.
+# Each task gets its own colour so the figure can be read by task. Reading it by row would
+# tell you less. The order here is the order the recordings were made in.
 TASKS = ["scoop", "pour", "pick", "grip"]
 COLOURS = {"scoop": "#2C5F2D", "pour": "#065A82", "pick": "#B85042", "grip": "#6D2E46"}
 
@@ -94,8 +94,8 @@ def main():
     for p in files:
         name = re.sub(r"^object_|_trajectory\.csv$", "", p.name)
         # The task is the first word of the name. A name carrying a third part, for eg.
-        # scoop_01_bowl, is a second object from the same recording rather than a take of
-        # the task, so it is shown but kept out of the per task spread below.
+        # scoop_01_bowl, is a second object from the same recording. It is not another take
+        # of the task, so it is shown and kept out of the per task spread below.
         task = name.split("_")[0]
         r = dict(recording=name, task=task, **measures(p))
         h = head.get(name)
@@ -104,8 +104,8 @@ def main():
         r["head_net_cm"] = float(h["head_net_cm"]) if h else ""
         r["head_path_cm"] = float(h["head_path_cm"]) if h else ""
         rows.append(r)
-    # Sort by the task order we record in rather than alphabetically, so the table reads
-    # in the order someone watching the footage would meet them.
+    # Sort by the task order we record in, so the table reads in the order someone watching
+    # the footage would meet them. Alphabetical order would scatter them.
     rows.sort(key=lambda r: (TASKS.index(r["task"]) if r["task"] in TASKS else 99, r["recording"]))
 
     csv_path = OUT / "object_summary.csv"
@@ -116,7 +116,7 @@ def main():
 
     # The figure answers the one question the table is bad at: does the room frame
     # correction behave the same way for an object as it did for the wrist ?
-    # Wide rather than tall, so twelve rows still read at slide and page size.
+    # Wide and short, so twelve rows still read at slide and page size.
     fig, axes = plt.subplots(1, 2, figsize=(17, 0.3 * len(rows) + 2.4))
     y = np.arange(len(rows))[::-1]
 
@@ -137,7 +137,7 @@ def main():
         ax.set_axisbelow(True)
 
     # Filled is what the glasses record, hollow is the same thing measured against the
-    # room. We say so once rather than on both panels.
+    # room. We say so once. Repeating it on both panels would only add clutter.
     axes[0].scatter([], [], s=46, color="#36454F", label="relative to the glasses")
     axes[0].scatter([], [], s=46, facecolors="none", edgecolors="#36454F", linewidths=1.8,
                     label="relative to the room")
@@ -164,7 +164,7 @@ def main():
               f"{ratio:>6.2f} {h:>6}")
 
     # A spread across takes of the same task is the thing we can actually defend, so we
-    # work it out here rather than leaving it to be eyeballed off the table.
+    # work it out here. Leaving it to be eyeballed off the table invites a wrong reading.
     print()
     for task in TASKS:
         # Takes only, so a second object tracked from the same recording does not get

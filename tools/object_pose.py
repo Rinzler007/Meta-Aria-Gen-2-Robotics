@@ -25,7 +25,7 @@ fixed offset X from the wrist, so its motion since the first frame is
 
 Conjugating a rotation by a fixed transform leaves the angle alone, so the object turns by
 exactly the same angle as the wrist does even though nobody knows X. That is what makes
-this worth reporting rather than guessed at.
+this worth reporting. Nobody has to guess at it.
 
 Why the rotation does not come from the object's own points. Lining each frame up with the
 one before it and composing the results does not work on this data. Chaining those fits
@@ -85,8 +85,8 @@ WINDOW_S = 4.0
 
 # Below this much movement in the room an object counts as resting. A stationary object
 # measured 6.1 cm across its box here, carried ones 15 cm and more, so the line has room on
-# both sides. It is drawn from twelve recordings rather than derived, so treat it as a rule
-# of thumb and look at the number beside it.
+# both sides. Twelve recordings are where it comes from. Nothing derives it, so treat it as
+# a rule of thumb and look at the number beside it.
 STATIC_CM = 10.0
 
 
@@ -100,7 +100,7 @@ def turn_degrees(R):
 def turn_axis(R):
     """The axis a rotation turns about, as a unit vector."""
     # The skew symmetric part of a rotation carries its axis. Near zero rotation the axis
-    # is meaningless, so we say so rather than return noise.
+    # is meaningless, so we say so. Returning noise would look like an answer.
     v = np.array([R[2, 1] - R[1, 2], R[0, 2] - R[2, 0], R[1, 0] - R[0, 1]])
     n = np.linalg.norm(v)
     return v / n if n > 1e-9 else np.array([np.nan, np.nan, np.nan])
@@ -169,8 +169,8 @@ def main():
             print(f"{name}: too few wrist samples in the window, skipped")
             continue
 
-        # The object's position comes from its own points rather than from the hand. The
-        # pipeline already wrote those in room coordinates, so this is a lookup.
+        # The object's position comes from its own points. The hand has no say in it. The
+        # pipeline already wrote those points in room coordinates, so this is a lookup.
         traj = OUT / f"object_{name}_trajectory.csv"
         ct, cx = [], []
         if traj.exists():
@@ -184,7 +184,7 @@ def main():
             T = Tw.copy()
             if len(ct):
                 # Hand samples and frames share a clock but not a rate, so each wrist pose
-                # takes the frame nearest it in time rather than the one at its own index.
+                # takes the frame nearest it in time. Matching by index would drift apart.
                 j = int(np.argmin(np.abs(ct - t)))
                 if abs(ct[j] - t) <= 0.05 and not np.isnan(cx[j]).any():
                     T[:3, 3] = cx[j]
@@ -199,7 +199,7 @@ def main():
             wander = float(np.median(np.linalg.norm(o - np.median(o, axis=0), axis=1)) * 100)
 
         # Did this object move at all ? A resting one owes nothing to the hand, so it gets
-        # one constant pose instead of the wrist's rotation frame by frame.
+        # one constant pose. The wrist's rotation frame by frame is for the carried ones.
         span = (np.linalg.norm(cx.max(axis=0) - cx.min(axis=0)) * 100) if len(cx) else float("nan")
         resting = span == span and span < STATIC_CM
         if resting:
@@ -226,7 +226,7 @@ def main():
         turn = np.array([turn_degrees(T[:3, :3]) for T in rel])
         if resting:
             # The scatter of a thing that never moves is the measurement error, so that is
-            # what gets reported rather than a rotation it never performed.
+            # what gets reported. A rotation it never performed would be a fiction.
             scat = float(np.median(np.linalg.norm(cx - np.median(cx, axis=0), axis=1)) * 100)
             print(f"{name:<14} resting, span {span:5.1f} cm. One fixed pose. "
                   f"Position scatter {scat:4.2f} cm, which is the measurement error")

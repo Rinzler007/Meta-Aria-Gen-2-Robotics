@@ -91,7 +91,7 @@ outlines the object in that frame and follows the outline through the rest of th
 
 **Getting depth.** Distance comes from comparing the two front cameras, the way two eyes
 judge distance. They sit 14.23 cm apart and point outward by 40.05 degrees, so the
-rectified geometry is built here instead of taken off the shelf. Checked against the hand
+rectified geometry is built here. Nothing is taken off the shelf. Checked against the hand
 positions the glasses work out themselves, three of four points agreed within 8 mm.
 
 **The object.** Every 3D point falling inside the outline belongs to the object. The
@@ -174,7 +174,7 @@ object from the same point.
 steady the centre is, not how far the object went. A translucent jug can total 287 cm while
 staying inside a 21 cm box.
 
-**Never run `git clean -x` here.** The recordings are ignored rather than absent, which
+**Never run `git clean -x` here.** The recordings sit on disk while git ignores them, which
 makes them exactly what that command deletes.
 
 **Never run `aria_gen2 auth pair` on a paired laptop.** It replaces the certificate and

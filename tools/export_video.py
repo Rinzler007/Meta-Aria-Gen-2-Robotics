@@ -39,22 +39,22 @@ OCTOBER = ["scoop_01", "scoop_02", "scoop_03",
 # needs to see what the hands were doing and halving it roughly quarters the file.
 SCALE = 0.5
 
-# Constant quality rather than constant bitrate, so a still clip costs less than a busy
-# one. 23 is the usual sensible default and these come out watchable.
+# Constant quality, so a still clip costs less than a busy one. A constant bitrate would
+# charge the same for both. 23 is the usual sensible default and these come out watchable.
 CRF = 23
 
 
 def annotate(frame, seconds):
     """Burn the timestamp into the top left corner, over a dark strip so it stays legible.
 
-    Why a strip rather than plain text ? Because the table in these recordings is a bright
-    orange and white text vanishes against it.
+    Why a strip behind the text ? Because the table in these recordings is a bright orange
+    and plain white text vanishes against it.
     """
     out = frame.copy()
     label = f"t = {seconds:5.2f} s"
     h, w = out.shape[:2]
-    # The box is sized from the text rather than guessed, so it still fits if the font
-    # scale changes with resolution.
+    # The box is sized from the text it has to hold, so it still fits if the font scale
+    # changes with resolution. A guessed size would not.
     scale = max(0.6, w / 1400.0)
     thick = max(1, int(round(scale * 2)))
     (tw, th), base = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, scale, thick)
@@ -75,8 +75,8 @@ def export(vrs_path, dest, scale=SCALE, crf=CRF):
     duration = (last_ns - first_ns) / 1e9
     fps = n / duration if duration > 0 else 30.0
 
-    # We take the first frame to learn the size rather than hardcoding one, since a
-    # different recording profile would give different dimensions.
+    # We take the first frame to learn the size. A hardcoded one would be wrong the moment
+    # a different recording profile gave different dimensions.
     probe = provider.get_image_data_by_index(rgb_id, 0)[0].to_numpy_array()
     h, w = probe.shape[:2]
     ow, oh = int(w * scale) // 2 * 2, int(h * scale) // 2 * 2   # even, H.264 needs it
@@ -104,8 +104,8 @@ def export(vrs_path, dest, scale=SCALE, crf=CRF):
             continue
         img = data.to_numpy_array()
         if (ow, oh) != (w, h):
-            # INTER_AREA is the right choice when shrinking, since it averages rather than
-            # sampling and so does not alias the cereal into a shimmering mess.
+            # INTER_AREA is the right choice when shrinking, since it averages the pixels
+            # it is given. Sampling them would alias the cereal into a shimmering mess.
             img = cv2.resize(img, (ow, oh), interpolation=cv2.INTER_AREA)
         img = annotate(img, (rec.capture_timestamp_ns - first_ns) / 1e9)
         proc.stdin.write(np.ascontiguousarray(img).tobytes())

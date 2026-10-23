@@ -1,8 +1,8 @@
 # Working the glasses
 
 Everything here is run from a shell with the virtual environment active. These are the
-commands that made the recordings in `recordings/`, so this is a record of what works
-rather than a copy of the documentation.
+commands that made the recordings in `recordings/`, so this is a record of what works.
+Nobody copied it out of the documentation.
 
 `$ARIA` points at the repository itself and the client SDK samples live under `vendor/`.
 
@@ -26,8 +26,8 @@ python3 -m pip install projectaria-tools==2.3.0
 python3 -m aria.extract_sdk_samples --output "$ARIA/vendor"
 ```
 
-The samples go into `vendor/` because they are Meta's code rather than ours and
-`.gitignore` keeps that folder out of git.
+The samples go into `vendor/` because Meta wrote them. We did not, so `.gitignore` keeps
+that folder out of git.
 
 ## Step 3: connect
 
@@ -38,7 +38,7 @@ aria_gen2 device list
 aria_gen2 auth check
 ```
 
-Pairing is stored on this laptop rather than on the glasses, so it survives reboots,
+Pairing is stored on this laptop. The glasses hold none of it, so it survives reboots,
 unplugging and weeks of leaving the device alone. `device list` printing the serial and an
 address means the cable is working. `auth check` coming back clean means the stored
 certificate is still trusted. Once both pass, go straight to step 4.
@@ -62,9 +62,9 @@ aria_gen2 recording stop
 aria_gen2 recording list
 ```
 
-Profile 10 rather than the default profile 8, because profile 10 records colour video
-at 30 frames per second and that matches the hand tracking rate. On profile 8 the two
-streams come out three to one and you have to reconcile them later.
+Profile 10 is the one to use. It records colour video at 30 frames per second and that
+matches the hand tracking rate. The default is profile 8, where the two streams come out
+three to one and you have to reconcile them later.
 
 ## Step 5: download it
 
@@ -167,7 +167,7 @@ aria_streaming_viewer --real-time --interpolate --rerun-memory-limit 4GB
 ```
 
 Walk away from the laptop. The viewer carrying on is the proof. To capture a file at
-the same time, use the step 9 script with `--record-to-vrs` rather than the viewer.
+the same time, use the step 9 script with `--record-to-vrs`. The viewer will not do it.
 Plug it back in to stop.
 
 ```bash

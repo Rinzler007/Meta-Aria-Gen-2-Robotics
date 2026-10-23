@@ -4,7 +4,7 @@
 # notebook rebuilds on demand.
 
 # The recordings themselves. A single one of these runs to 925 MB and GitHub refuses any
-# file over 100 MB, so a push carrying them would fail outright rather than quietly
+# file over 100 MB, so a push carrying them would fail outright. It would not quietly
 # succeed. We exclude both the folder and the extension, because a stray recording saved
 # somewhere else should be caught just the same.
 recordings/
@@ -12,7 +12,7 @@ recordings/
 
 # Model weights. Ultralytics downloads these on demand and drops them into whatever the
 # working directory happens to be, so the extensions matter as much as the folder.
-# The extra formats are here for when we export a model rather than just load one.
+# The extra formats are here for when we export a model. Loading one needs fewer of them.
 models/
 *.pt
 *.pth
@@ -35,7 +35,7 @@ videos/
 *.mov
 
 # Meta's client SDK samples. We never edited these and extract_sdk_samples puts them
-# back in one command, so they are a checkout rather than our own work.
+# back in one command, so they are a checkout. None of that folder is our own work.
 vendor/
 
 # The reference folder is a mixed bag, so we split it. The two papers are public and
@@ -82,7 +82,7 @@ env/
 # vanish when the document is closed, so there is never a reason to commit one.
 ~$*
 
-# Editor and tool settings are personal rather than part of the project.
+# Editor and tool settings are personal. They are no part of the project.
 .vscode/
 .idea/
 
@@ -90,7 +90,7 @@ env/
 *.log
 
 # The PLY point clouds. Every point in them is already in the matching
-# outputs/object_*_clouds.npz, kept frame by frame rather than concatenated, so carrying
+# outputs/object_*_clouds.npz, which keeps them frame by frame, so carrying
 # both means storing 36 MB of the same points twice and a fresh full copy of each on every
 # re-run. tools/export_ply.py rebuilds the whole set from the npz files in a second and it
 # works on a fresh clone because those are committed. The PNG renders stay in git, since

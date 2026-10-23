@@ -1,0 +1,14 @@
+label,time_s,proposed_x,proposed_y,typed_x,typed_y,gap_px,on_object,hand,rule
+scoop_01,2.84,1113,856,1008,803,117.8,no,right,hand and gaze
+scoop_02,4.15,1032,879,1010,807,75.0,no,right,hand and gaze
+scoop_03,4.75,1172,749,1050,682,139.4,no,right,hand and gaze
+pour_01,3.91,1289,844,1100,890,194.7,yes,right,hand and gaze
+pour_02,2.87,1166,840,1050,870,120.1,no,right,hand and gaze
+pour_03,2.72,1314,775,1240,820,86.4,no,right,hand and gaze
+pick_01,1.86,1097,762,1103,774,13.4,yes,right,hand and gaze
+pick_02,5.23,1134,814,1223,817,88.7,yes,right,hand and gaze
+pick_03,3.89,1118,805,1144,865,65.7,yes,right,hand and gaze
+grip_01,2.55,1184,748,1145,706,56.9,no,right,hand and gaze
+grip_02,3.36,1178,750,1063,712,120.5,no,right,hand and gaze
+grip_03b,4.86,1133,719,1036,761,106.1,no,right,hand and gaze
+scoop_01_bowl,7.6,1159,832,1112,749,95.4,no,right,hand and gaze

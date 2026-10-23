@@ -16,7 +16,7 @@ comes back. You look at one contact sheet and pick.
 It makes no decision. It narrows a few hundred possibilities to a dozen worth looking at,
 which is the part a person is good at.
 
-**A panel here is a candidate rather than an answer.** This runs SAM on a single frame
+**A panel here is a candidate. It is not an answer.** This runs SAM on a single frame
 while the pipeline runs SAM 2 over the video, carrying a memory between frames and the
 two do not always choose the same object from the same point. A click giving a clean
 spoon sized mask here can give the whole bowl once the video tracker has it. Run the
@@ -66,7 +66,7 @@ def moving_moments(provider, side, t_from, t_to, n, hold=0.4):
     frame would not give better. The moment it is clear of everything else is the moment
     it is being carried.
 
-    Why sustained speed rather than peak speed ? Because the tracker is given one frame
+    Why sustained speed ? Peak speed would be the obvious choice. The tracker is given one frame
     and has to recognise the object in the next. Starting at the instant a movement begins
     means the object is about to be lifted, turned and reloaded, so what the tracker sees
     next looks nothing like what it was given. That is exactly how the first attempt at
@@ -100,9 +100,9 @@ def moving_moments(provider, side, t_from, t_to, n, hold=0.4):
     if len(mid) == 0:
         return []
 
-    # The slowest the hand gets over a window centred on each moment. Taking the minimum
-    # rather than the mean is deliberate: it rejects a moment that merely sits next to a
-    # burst of movement, keeping only moments that are inside one.
+    # The slowest the hand gets over a window centred on each moment. The minimum is
+    # deliberate. It rejects a moment that merely sits next to a burst of movement, keeping
+    # only moments that are inside one. A mean would let both through.
     sustained = np.empty_like(speed)
     for i, m in enumerate(mid):
         w = (mid >= m - hold) & (mid <= m + hold)

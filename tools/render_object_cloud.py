@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Redraw the accumulated object point cloud figure from its npz.
 
-It reads `outputs/object_<recording>_clouds.npz`, which is committed, rather than the
-recording, which is far too large for git and is excluded. So this runs on a fresh clone
+It reads `outputs/object_<recording>_clouds.npz`, which is committed. The recording itself
+is far too large for git and is excluded. So this runs on a fresh clone
 with no data download and no model weights.
 
     python3 tools/render_object_cloud.py                  # the most recent object run
@@ -24,12 +24,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# Which axis of the room frame points upwards ? We checked rather than assumed. The spoon is
+# Which axis of the room frame points upwards ? We checked. Nobody assumed. The spoon is
 # lifted out of a bowl during these hundred frames and z is the axis that rises steadily
 # with it, gaining 9.1 cm between the first frames and the last while the other two wander
 # without going anywhere in particular.
 #
-# Note we use that rise rather than the raw span to decide. Depth noise throws a handful of
+# Note that the decision uses that rise. The raw span would be wrong, since depth noise throws a handful of
 # points a long way out, so z reads 44.8 cm across its full extent while 99 percent of the
 # cloud sits inside 23.3 cm. Two points out of 20,518 account for the difference. A span is
 # the wrong statistic to reason from here and reading one off a plot is how you talk
@@ -47,7 +47,7 @@ def load(npz_path):
     clouds = [z[k] for k in keys]
 
     # Every point gets labelled with the frame it came from, which is what lets the colour
-    # carry time rather than just making the picture look busy.
+    # carry time. Without it the colour would just make the picture look busy.
     frame_of = np.concatenate([np.full(len(c), i) for i, c in enumerate(clouds)])
     pts = np.vstack(clouds)
 
@@ -132,8 +132,8 @@ def main():
         clouds = Path(args.clouds)
     else:
         # Default to whichever object run is present. There is normally one per recording,
-        # named by the pipeline notebook, so we take the most recently written rather than
-        # hardcoding a name that goes stale the moment a new recording is processed.
+        # named by the pipeline notebook, so we take the most recently written one. A
+        # hardcoded name goes stale the moment a new recording is processed.
         found = sorted(outputs.glob("object_*_clouds.npz"), key=lambda f: f.stat().st_mtime)
         if not found:
             print(f"no object_*_clouds.npz in {outputs}", file=sys.stderr)
@@ -147,8 +147,8 @@ def main():
     out = Path(args.out) if args.out else clouds.with_name(
         clouds.name.replace("_clouds.npz", "_cloud.png"))
 
-    # An explicitly named file that does not exist deserves a plain message rather than a
-    # stack trace out of numpy.
+    # An explicitly named file that does not exist deserves a plain message. A stack trace
+    # out of numpy tells you nothing about what you typed wrong.
     if not clouds.is_file():
         print(f"no cloud data at {clouds}", file=sys.stderr)
         return 1
