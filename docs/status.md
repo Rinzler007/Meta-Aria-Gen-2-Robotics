@@ -118,22 +118,47 @@ fixed time after the grasp begins would make the three takes of a task comparabl
 is the reason three takes of each were recorded. Note that the prompt is a pixel in the
 frame at the window start, so moving a window means finding its prompt again.
 
-**2. Make grasp detection work in both directions.** The method watches how compact the 21
-hand landmarks are and assumes a grasp makes the hand more compact. That holds for a thin
-handle, where the fingers curl. It is reversed for a wide tin, where the fingers splay
-around it and the landmarks move further apart, so the method picks out the quiet period
-after the tin is set down and calls that the hold. The gap threshold currently rejects
-those recordings, so no wrong answer is reported, but it rejects them for the wrong reason.
-Detecting a sustained change of either sign would cover both kinds of grip.
+**2. Find a second signal for wide objects.** Grip detection reads how compact the 21 hand
+landmarks are, which separates a tight grip from an open hand and works on the spoon and
+the jug. It cannot see a tin being picked up.
+
+The reason is not that the signal inverts, which is what this document said before the
+three tin recordings were measured properly. The hand reads 4.8 to 5.3 while reaching for a
+tin and 4.4 to 5.3 while holding it, so there is no gap to find. It falls to about 4.3 only
+once the tin is set down and the hand relaxes, so the one clear transition in the signal is
+the release. A method hunting for a change marks the period after the tin is down as the
+grip.
+
+The tool rejects those recordings rather than reporting that, so no wrong answer gets out.
+Covering them needs a signal beyond the shape of the hand, since a hand reaching for a tin
+and a hand carrying one look alike by this measure.
 
 **3. Measure the prompt rule against ground truth.** HOT3D carries true object poses with
 rendered masks across 33 objects. Deriving the coordinate from the hand was tried and does not
 transfer between grips and without ground truth there is no way to tell a near miss from
 a wild one.
 
-**4. Switch to the `vio_high_frequency` stream.** It runs at 794.1 Hz against the 10 Hz
-stream in use, removing the 50 ms gap between a pose and a frame and it reports the device
-pose directly without the chaining step. The cheapest real improvement available.
+**4. Give the object a centre that does not depend on the viewpoint.** This is where the
+remaining error lives, and it is not where this document said it was a day ago.
+
+The object's position is currently the average of the points visible in that frame. The
+visible part of a thing is not the thing, so the average moves when the viewer moves even
+though the object has not. On the static bowl the apparent movement correlates at 0.82
+with the viewing angle, which swings only 4.8 degrees across the window, and at 0.90 with
+how far the head has moved. Only 0.24 cm of the 0.69 cm typical error lies along the line
+of sight, so this is not simply depth noise.
+
+The fix is a position taken from a model of the object rather than from whichever part of
+it happens to face the cameras, which is the same work as building one 3D model out of the
+120 partial surfaces.
+
+**Not worth doing: switching to the `vio_high_frequency` stream.** It runs at 794.1 Hz
+against the 10 Hz stream in use and reports the device pose directly without the chaining
+step, so it looked like the cheapest improvement available. It was tested on the static
+bowl, which is the one case where the right answer is known. Converting the same frames
+with each stream moves the typical error not at all, from 0.69 cm to 0.69 cm, and the worst
+frame from 4.62 cm to 4.35 cm. The gap between a pose and a frame falls from 200 ms to
+1.33 ms and buys nothing, which is what rules the pose stream out as the cause.
 
 ## Where to read next
 

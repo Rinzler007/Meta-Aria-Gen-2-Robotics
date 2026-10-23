@@ -10,17 +10,19 @@ cannot be identified. The spread of those 21 points about their own centre needs
 labels. A hand closed around a spoon handle is a more compact set of points than an open
 hand, so the spread drops on a grasp and rises on a release.
 
-The direction of the change depends on the girth of the object, and that is the catch. A
-hand closing on a thin handle curls, so the landmarks pull in towards their own centre and
-the spread falls. A hand taking hold of a wide tin splays instead, so the landmarks move
-apart and the spread rises. This method assumes the first, so on the tin recordings it
-picks out the quiet period after the tin has been set down and calls that the hold, which
-is backwards.
+What it cannot do, and why. The feature separates a tight grip from an open hand. It does
+not separate holding a wide object from reaching for one, because the hand is nearly the
+same shape either way. Measured across the three tin recordings, the hand reads 4.8 to 5.3
+while reaching and 4.4 to 5.3 while holding, which is no gap at all. It then drops to about
+4.3 once the tin is set down and the hand relaxes.
 
-The gap threshold below rejects those cases, so a wrong answer is never reported. It
-rejects them for the wrong reason though, since the tin signal is weak rather than absent.
-Detecting a sustained change in either direction would cover both kinds of grip, and that
-is the work this still needs.
+So on a wide object the only clear transition in the signal is the release, and a method
+looking for a change would mark the relaxed period afterwards as the grip. The gap
+threshold below rejects those recordings before that answer is reported, which is the right
+outcome reached for a reason worth knowing: the signal is ambiguous rather than inverted.
+
+Covering wide objects needs something besides the shape of the hand, since by this measure
+a hand about to pick a tin up and a hand carrying one look alike.
 
     python3 tools/grasp_intervals.py
     python3 tools/grasp_intervals.py scoop_01 pour_02
