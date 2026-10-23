@@ -55,8 +55,8 @@ def main():
         raise SystemExit(f"no exported frames in cache/frames_{tag}")
     H, W = iio.imread(frames[0]).shape[:2]
 
-    # Without a list we spread eight frames over the window, weighted to the opening
-    # frames because that is where a prompt that was wrong from the start shows itself.
+    # Without a list we spread eight frames over the window, weighted towards the opening
+    # frames. A prompt sitting on the wrong object shows itself there first.
     picks = a.frames or [0, 8, 16, 30, 60, 90, 110, len(keys) - 1]
     picks = [p for p in picks if 0 <= p < len(keys)]
 

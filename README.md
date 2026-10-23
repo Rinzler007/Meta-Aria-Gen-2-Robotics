@@ -7,8 +7,8 @@ path that object travelled through the room together with the 3D points belongin
 Everything runs offline on saved files.
 
 **The scope here is the glasses.** Producing those two things from a recording is the whole
-task. A robot learning a movement from them is the motivation and a possible later project,
-and no part of this repository involves a robot arm.
+task. A robot learning a movement from them is the motivation and a possible later project.
+No part of this repository involves a robot arm.
 
 **`docs/status.md` says where the project stands.** Read that first.
 
@@ -191,8 +191,8 @@ Four files per recording in `outputs/`, described properly in `docs/deliverables
 - `object_<recording>_cloud_world.ply`, for CloudCompare or MeshLab, rebuilt by `tools/export_ply.py`
 
 Across all twelve recordings and four tasks, `object_summary.csv` and `object_summary.png`
-put the runs side by side, `grasp_intervals.csv` holds where each hand closed and let go,
-and `wrist_world_frame_summary.csv` holds the hand result.
+put the runs side by side, `grasp_intervals.csv` holds where each hand closed and let go.
+`wrist_world_frame_summary.csv` holds the hand result.
 
 One thing about the renders misleads people. The shape shown is the object drawn 120 times
 over, once per frame, laid along the path it travelled. On `scoop_01` a single frame

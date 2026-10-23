@@ -2,7 +2,7 @@
 """Choose the window for each recording from the grip detection, with no hand picking.
 
 The pipeline works on a window of a recording. Until now a person watched each clip and
-chose four seconds of it. That is one of the two manual steps left, and it is the one that
+chose four seconds of it. That is one of the two manual steps left. It is the one that
 stops the three takes of a task being comparable, since four seconds picked for one take
 need not sit at the same point in the task as four seconds picked for the next.
 
@@ -19,8 +19,8 @@ object is poorly placed in those frames.
 
 One thing it cannot do for you. The prompt is a pixel coordinate on the object in the
 window's first frame, so moving a window invalidates its prompt. `tools/find_prompt.py`
-has to run again for any recording whose window changes, and somebody still has to look at
-the contact sheet. Automating the window does not automate the coordinate.
+has to run again for any recording whose window changes. Somebody still has to look at the
+contact sheet. Automating the window does not automate the coordinate.
 """
 
 import argparse
@@ -74,9 +74,8 @@ def main():
             continue
         p0, p1 = prop[name]
         h0, h1 = float(r["start_s"]), float(r["start_s"]) + 4.0
-        # How much of the window a person chose falls inside the one proposed here. The
-        # hand picked windows were settled before any of this existed, so they owe the
-        # proposal nothing.
+        # How much of the window already in the registry falls inside the one proposed
+        # here. A high figure means the two ways of choosing agree.
         over = max(0.0, min(p1, h1) - max(p0, h0)) / (h1 - h0)
         kept += over
         print(f"{name:<10} {f'{h0:5.2f} to {h1:5.2f}':>16} {f'{p0:5.2f} to {p1:5.2f}':>18} "

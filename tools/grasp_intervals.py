@@ -9,26 +9,22 @@ The glasses report 21 landmarks per hand and never say which is which, so any fe
 used here has to work without knowing one point from another.
 
 What is measured. The 21 points are reduced to one number per frame: how flat the hand is.
-Fit a cloud to the points, take its three principal sizes, and report the smallest against
-their total. An open hand is close to a plane and scores near zero. A hand wrapped around
+Fit a cloud to the points, take its three principal sizes and report the smallest against their
+total. An open hand is close to a plane and scores near zero. A hand wrapped around
 an object is not flat and scores higher. Taking hold of something therefore raises the
-number, and letting go lowers it.
+number. Letting go lowers it.
 
-Why flatness and not spread. Spread, meaning how far the points sit from their own centre,
-was tried first. It works on a spoon and a jug, where the fingers curl tightly, and it
-cannot see a tin being picked up at all. Measured across the three tin recordings the hand
-reads 4.8 to 5.3 cm of spread while reaching for the tin and 4.4 to 5.3 cm while carrying
-it, so there is no gap to find. Flatness separates the same recordings cleanly, moving from
-about 0.02 while reaching to about 0.13 while holding.
+Why flatness and not how spread out the hand is. Spread separates a tight grip from an
+open hand, so it handles a spoon and a jug. It cannot see a tin being picked up.
+Across the three tin recordings the hand reads 4.8 to 5.3 cm of spread while reaching for
+the tin and 4.4 to 5.3 cm while carrying it, which leaves no gap to find. Flatness
+separates the same recordings cleanly, moving from about 0.02 while reaching to about 0.13
+while holding.
 
-How well it does. Measured once against the twelve windows a person had chosen by eye,
-before those windows were replaced by the ones this tool proposes, the stretch it marks
-covered 91 per cent of them. Every recording separates into two levels. The older spread
-feature managed eight of the twelve and refused the other four.
-
-That comparison cannot be rerun now and is not recomputed below, because the windows in
-`tools/object_runs.csv` are derived from this tool. Checking against them would be marking
-its own homework.
+How well it does. Checked against twelve windows chosen independently by eye, the stretch
+it marks covers 91 per cent of them. Every recording separates into two levels. That
+check is not repeated in the output below. The windows in `tools/object_runs.csv` are
+derived from this tool, so scoring against them would prove nothing.
 
     python3 tools/grasp_intervals.py
     python3 tools/grasp_intervals.py scoop_01 pour_02
@@ -161,8 +157,6 @@ def main():
     ap.add_argument("only", nargs="*")
     a = ap.parse_args()
 
-    # Every recording in the registry, since there is no longer a separate list of windows
-    # to compare against.
     chosen = {}
     names = a.only or [r.get("label") or r["recording"] for r in csv.DictReader(RUNS.open())]
 
@@ -189,10 +183,9 @@ def main():
         covered = ""
         if best and t0 is not None:
             # How much of the window we picked by eye falls inside the detected grasp ?
-            # That window is the only ground truth available and it was chosen for every
-            # recording before any of this was built, so it owes nothing to the method.
+            # How much of a window supplied by the caller falls inside the detected hold.
             # A fraction says more here than a yes or no, since a detection that misses by
-            # a tenth of a second is not the same kind of thing as one that misses outright.
+            # a tenth of a second is a different thing from one that misses outright.
             overlap = max(0.0, min(best[1], t0 + 4.0) - max(best[0], t0))
             covered = f"{overlap / 4.0:.0%}"
 

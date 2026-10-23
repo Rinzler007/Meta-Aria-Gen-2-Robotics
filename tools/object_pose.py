@@ -12,7 +12,7 @@ A pose is both together:
 
 These compose by multiplying and reverse by inverting, which is what moves a measurement
 between frames of reference. The glasses give us two already. Their own pose in the room
-comes from VIO, and the wrist pose relative to the glasses comes from the hand tracker, so
+comes from VIO. The wrist pose relative to the glasses comes from the hand tracker, so
 
     T_room_wrist = T_room_device @ T_device_wrist
 
@@ -27,13 +27,12 @@ Conjugating a rotation by a fixed transform leaves the angle alone, so the objec
 exactly the same angle as the wrist does even though nobody knows X. That is what makes
 this worth reporting rather than guessed at.
 
-The alternative was to recover the rotation from the object's own points, lining each
-frame up with the one before and composing the results. That was tried and it does not
-work here. Chaining the fits forward through the window and back again should return to
-where it started, and instead it finishes 94 to 105 degrees and more than half a metre
-away. The fits look good one at a time, with a median residual under 2 mm, while a spoon
-or a jug is smooth enough that a fit can slide along its own surface without penalty. Over
-a hundred and nineteen frames that becomes a random walk.
+Why the rotation does not come from the object's own points. Lining each frame up with the
+one before it and composing the results does not work on this data. Chaining those fits
+forward through a window and back again should return to where it started. It finishes
+94 to 105 degrees and more than half a metre away. Each fit looks good alone, with a median
+residual under 2 mm, while a spoon or a jug is smooth enough that a fit slides along its own
+surface without penalty. Over a hundred frames that becomes a random walk.
 
     python3 tools/object_pose.py
     python3 tools/object_pose.py pour_01 pour_02
@@ -46,7 +45,7 @@ coordinates, so the centre of those points is the object's position and no offse
 needed to get it. The pose written here is that position carrying the wrist's rotation.
 
 Objects that never move are handled separately and need no hand at all. If something stays
-put then its pose is one constant matrix, and the only useful question is how far the
+put then its pose is one constant matrix. The only useful question is how far the
 measurement wanders when the right answer is known to be zero. The red bowl in scoop_01
 answers that. Seen from the glasses it appears to travel through a box 13.9 cm across,
 purely because the wearer's head moves. Converted into room coordinates that falls to
@@ -54,8 +53,8 @@ purely because the wearer's head moves. Converted into room coordinates that fal
 bars for every object position this project reports.
 
 How a held object is told from a resting one. By whether it moves. Anything whose own
-motion stays inside the static error gets a constant pose, and anything that exceeds it is
-treated as carried and takes the wrist's rotation. The cut sits at STATIC_CM below, drawn
+motion stays inside the static error gets a constant pose. Anything that exceeds it is treated as
+carried and takes the wrist's rotation. The cut sits at STATIC_CM below, drawn
 from these recordings, where resting objects measure about 6 cm and carried ones 15 cm and
 upwards.
 

@@ -70,8 +70,7 @@ def run_one(row):
     # A row without a label names its outputs after the recording, which is what every
     # row did before a second object per recording became possible.
     label = row.get("label") or row["recording"]
-    # A row without a duration keeps the four seconds every row used before windows
-    # could be chosen automatically.
+    # A row without a duration gets four seconds.
     duration = row.get("duration_s") or "4.0"
     configure(row["recording"], label, row["start_s"], row["prompt_x"], row["prompt_y"], duration)
     print(f"\n=== {label}  start {row['start_s']} s  for {duration} s  "

@@ -7,7 +7,7 @@ what does it not do and what to build next.
 
 **The scope of this project is the glasses.** Turning a recording into the two deliverables
 below is the whole task. A robot learning from those demonstrations is the motivation and
-a possible later project, and nothing here involves a robot arm.
+a possible later project. Nothing here involves a robot arm.
 
 A caregiver wears Aria Gen 2 glasses and performs a task normally. Dasharadhan set the
 scope and it is narrow on purpose:
@@ -76,25 +76,24 @@ and object cancels out of a rotation.
 
 The position comes from the object's own points, which the pipeline already places in room
 coordinates, so no offset is needed to get it. The tool also checks the grip it depends on.
-Seen from the wrist's own frame a firmly held object sits at a fixed offset, and that
+Seen from the wrist's own frame a firmly held object sits at a fixed offset. That
 quantity wanders by 1.5 to 5 cm on eleven of the twelve. It reaches 15.6 cm on scoop_03,
 whose window straddles the moment the spoon is put down, so the check finds the one case
 where the assumption genuinely fails.
 
-An object at rest needs no hand at all. Its pose is one constant matrix, and the useful
+An object at rest needs no hand at all. Its pose is one constant matrix. The useful
 question is how far the measurement wanders when the answer is known to be zero. The red
 bowl in `scoop_01` answers that. Seen from the glasses it appears to travel through a box
 13.9 cm across purely because the wearer's head moves. Converted into room coordinates
 that falls to 6.1 cm, with a median wander of 0.69 cm. Those are the error bars for every
-object position here, and the drop from 13.9 to 6.1 is the room frame conversion measured
+object position here. The drop from 13.9 to 6.1 is the room frame conversion measured
 on a thing that genuinely never moved.
 
 Carried and resting are told apart by whether the object moves further than `STATIC_CM`,
 which is drawn from these recordings rather than derived.
 
-Recovering the rotation from the object's own points was tried first and does not work on
-this data. Chaining frame to frame fits forward through a window and back should return to
-the start, and instead finishes 94 to 105 degrees and over half a metre out. Each fit looks
+Recovering the rotation from the object's own points does not work on this data. Chaining frame to frame fits forward through a window and back should return to
+the start. Instead finishes 94 to 105 degrees and over half a metre out. Each fit looks
 good alone, with a median residual under 2 mm, while a spoon or a jug is smooth enough that
 a fit slides along its own surface. Over 119 frames that becomes a random walk.
 
@@ -113,33 +112,29 @@ shares very little with the current pipeline.
 
 ## What to build next, in order
 
-**1. Settle which window a demonstration should use.** The windows now come from the grip
-detection, cover a whole demonstration from grasp to release, and were applied to all
-twelve recordings. `tools/auto_window.py` chooses them and `tools/repeatability.py`
-measures whether that helped.
+**1. Settle what a demonstration should be measured on.** Windows come from the grip
+detection and cover a whole demonstration from grasp to release. `tools/repeatability.py`
+asks whether the three takes of a task then give the same answer. The measure matters more
+than the window does.
 
-It helped for two tasks out of four and hurt the other two:
-
-| Task | Box diagonal across takes, four second windows | Whole demonstrations |
+| Task | Box diagonal spread across takes | Net displacement spread |
 | --- | --- | --- |
-| grip | 109% | 3% |
-| pour | 17% | 14% |
-| scoop | 30% | 66% |
-| pick | 34% | 40% |
+| grip | 3% | 130% |
+| pour | 14% | 99% |
+| scoop | 66% | 111% |
+| pick | 40% | 32% |
 
-The grip result is the strongest repeatability evidence this project has produced. Three
-takes of the same task, measured independently, agree to 3 per
-cent.
+Grip at 3 per cent is the strongest repeatability figure the
+project has. Three takes of one task, measured independently, land within that of each
+other.
 
-Two things have to be read alongside it. Scoop and pick got worse, so a whole demonstration
-is not automatically a better unit of comparison. And the measure matters more than the
-window: net displacement collapses towards zero on a whole demonstration, because somebody
-who picks a spoon up and puts it back has moved it nowhere, which is why its spread runs
-from 32 to 130 per cent and means
-very little.
+Net displacement is the wrong measure for a whole demonstration. Somebody who picks a spoon
+up, scoops and puts it back has moved it almost nowhere, so the figure collapses towards
+zero and its spread means very little.
 
-Deciding what a demonstration should be measured on is the open question. The box diagonal
-is the better of the two on hand, and nothing yet says it is the right one.
+The box diagonal survives that. It is uneven across tasks. Grip and pour agree closely
+while scoop and pick do not, so a whole demonstration is not automatically the right unit
+of comparison. Finding a measure that holds for all four tasks is the open question.
 
 **2. Check the work against ground truth, using the Aria Gen 2 Pilot Dataset.** Nothing
 here has been compared with a known correct answer. Depth was checked against the hand
@@ -147,9 +142,8 @@ positions the glasses compute themselves, which is independent and covers depth 
 object poses have never been checked, because none of our own recordings carries a correct
 answer.
 
-The Pilot Dataset is a better fit than HOT3D, which this document recommended before the
-manifest in `reference/` was read properly. It was recorded on these same glasses, so
-nothing has to be adapted, and three of its data groups answer three separate questions:
+The Aria Gen 2 Pilot Dataset is the right source. It was recorded on these same glasses, so
+nothing has to be adapted. Three of its data groups answer three separate questions:
 
 | Data group | What it would settle |
 | --- | --- |
