@@ -85,7 +85,7 @@ This is the one thing that reliably misleads people looking at the render, so it
 being plain about.
 
 A single frame holds the surface of the object that both cameras could see at that instant.
-Not the object. The back of it never appears, because there is no depth sensor on these
+It is not the whole object. The back of it never appears, because there is no depth sensor on these
 glasses and depth is computed by matching what the two forward facing cameras each saw.
 Neither of them can see round the back.
 

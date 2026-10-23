@@ -1,6 +1,6 @@
 # Where this project stands
 
-One page answering four questions. What is the system meant to do, what does it do today,
+This page answers four questions. What is the system meant to do, what does it do today,
 what does it not do and what to build next.
 
 ## The objective
@@ -155,11 +155,10 @@ Twelve sequences exist and four of them handle objects, which are `cook_0`, `cle
 `eat_0` through `eat_3`. One sequence costs about 2.3 GB, since the recording is 2.2 GB
 while the annotations are 1 to 5 MB.
 
-**What blocks it.** The download links in
-`reference/AriaGen2PilotDataset_download_urls.json` have expired and return 403 with "URL
-signature expired". Fresh ones mean going to Meta's Aria dataset page, accepting the terms
-again and downloading a new manifest. That is a few minutes of somebody's time and it
-cannot be done from here.
+**What you need to do first.** Go to Meta's Aria Gen 2 Pilot Dataset page, accept the
+terms and download the manifest of file links. The links are signed and they expire, so
+grab one when you are ready to use it. Put it in `reference/` and the sizes above tell you
+which sequence to pull.
 
 ## Where to read next
 

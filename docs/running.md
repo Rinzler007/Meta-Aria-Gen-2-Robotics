@@ -1,7 +1,7 @@
 # Running this repository
 
 The README explains why each thing was built. This file says what to run, in what order.
-What you get back. Start here if you have just cloned the repository.
+This also says what you get back. Start here if you have just cloned the repository.
 
 ## The short version
 
@@ -36,7 +36,7 @@ observed. For most questions reading is faster than rerunning.
 
 ## Getting the data
 
-Two routes.
+There are two routes.
 
 **Record your own.** `docs/glasses_runbook.md` has every command, from pairing through to
 download. Use profile 10. Then check what you captured before you leave the lab:
