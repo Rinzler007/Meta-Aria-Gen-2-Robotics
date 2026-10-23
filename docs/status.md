@@ -130,39 +130,31 @@ somebody to look at the contact sheet. Twelve searches at about six minutes each
 looking. The deliverables currently all use hand picked windows, which keeps them
 comparable with each other.
 
-**2. Measure the prompt rule against ground truth.** HOT3D carries true object poses with
-rendered masks across 33 objects. Deriving the coordinate from the hand was tried and does not
-transfer between grips and without ground truth there is no way to tell a near miss from
-a wild one.
+**2. Check the work against ground truth, using the Aria Gen 2 Pilot Dataset.** Nothing
+here has been compared with a known correct answer. Depth was checked against the hand
+positions the glasses compute themselves, which is independent and covers depth alone. The
+object poses have never been checked, because none of our own recordings carries a correct
+answer.
 
-**Settled: the 0.69 cm position error is the floor for this method.** Three explanations
-were tested on the static bowl and two of them were wrong.
+The Pilot Dataset is a better fit than HOT3D, which this document recommended before the
+manifest in `reference/` was read properly. It was recorded on these same glasses, so
+nothing has to be adapted, and three of its data groups answer three separate questions:
 
-The pose stream is not the cause. Swapping the 10 Hz stream for the 794 Hz one closes the
-gap between a pose and a frame from 200 ms to 1.33 ms and leaves the typical error at
-0.69 cm, exactly where it was.
+| Data group | What it would settle |
+| --- | --- |
+| `scene/3d_bounding_box.csv` | Whether our object poses are right |
+| `depth/depth` | Whether our stereo depth is right, across a whole frame |
+| `hand_object_interaction/` | Whether the grip detection agrees with labelled interactions |
 
-A viewpoint dependent centre is not the cause either. Pooling all 120 frames into one model
-of the bowl and lining each frame up against it leaves the typical error at 0.69 cm and
-moves the full box from 6.08 cm to 5.91 cm.
+Twelve sequences exist and four of them handle objects, which are `cook_0`, `clean_0`,
+`eat_0` through `eat_3`. One sequence costs about 2.3 GB, since the recording is 2.2 GB
+while the annotations are 1 to 5 MB.
 
-What it is: stereo matching noise. The error points in a random direction, scoring 0.18 for
-consistency in the room frame and 0.17 in the device frame, so nothing is systematically
-offset. It grows when the head moves, correlating 0.82 with viewing angle, which fits motion
-blur and the longer gap to a usable pose. At a range of 65 cm, 0.69 cm is an angle of
-0.61 degrees, which is roughly three pixels of disparity in the rectified camera.
-
-Three pixels is close to what block matching gives. Going below it needs sub pixel disparity
-refinement or averaging over frames, and neither is worth doing while the objects themselves
-move 5 cm to 47 cm. The error is 1.5 to 14 per cent of the movement being measured.
-
-**Not worth doing: switching to the `vio_high_frequency` stream.** It runs at 794.1 Hz
-against the 10 Hz stream in use and reports the device pose directly without the chaining
-step, so it looked like the cheapest improvement available. It was tested on the static
-bowl, which is the one case where the right answer is known. Converting the same frames
-with each stream moves the typical error not at all, from 0.69 cm to 0.69 cm, and the worst
-frame from 4.62 cm to 4.35 cm. The gap between a pose and a frame falls from 200 ms to
-1.33 ms and buys nothing, which is what rules the pose stream out as the cause.
+**What blocks it.** The download links in
+`reference/AriaGen2PilotDataset_download_urls.json` have expired and return 403 with "URL
+signature expired". Fresh ones mean going to Meta's Aria dataset page, accepting the terms
+again and downloading a new manifest. That is a few minutes of somebody's time and it
+cannot be done from here.
 
 ## Where to read next
 
