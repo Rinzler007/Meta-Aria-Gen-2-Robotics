@@ -63,11 +63,24 @@ is clicked. That is fine for twelve recordings. It does not survive a caregiver 
 tasks all day. Working the coordinate out from the hand does not transfer between grips,
 so a dataset with known object positions is needed to measure any rule against.
 
-**The point cloud is a stack of partial surfaces.** Each frame holds the side of the object
-the cameras could see at that instant, between 87 and 324 frames of them depending on how
-long the demonstration ran. The shape of the thing and the path it took are tangled together
-in the same file. Merging them into one model needs the object's pose in each frame, which
-exists for anything held.
+**The point cloud is a stack of partial surfaces for anything carried.** Each frame holds
+the side of the object the cameras could see, so the shape of the thing and the path it
+took sit tangled in the same file. `tools/object_model.py` separates them by carrying every
+frame's points back into the object's own frame.
+
+It works where the pose is solid and fails where it is not. A resting object has one
+constant pose, so the bowl in `scoop_01` narrows from 52.5cm to 24.7cm, which is the
+bowl itself. Every carried object comes out wider pooled than stacked, so the tool measures
+each one and keeps only those that genuinely improve. It currently keeps 3 of 13.
+
+The rotation is what breaks it. Taking only the path out barely moves the width. Taking the
+turning out as well roughly doubles it. The rotation comes from the wrist, which is right
+about how far the object turned while being too rough to line surfaces up. The grip check
+in `tools/object_pose.py` shows the object sliding 1.5 to 5 cm inside the hand across a
+window. At the 15 cm or so between wrist and object that is around 20 degrees of error.
+
+Getting this to work on carried objects needs the object's rotation from the object itself,
+which registering frame to frame does not provide on this data.
 
 **Accuracy has never been checked against a known correct answer.** Depth was checked
 against the hand positions the glasses compute on their own chip, which is independent and
