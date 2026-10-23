@@ -100,3 +100,7 @@ outputs/*.ply
 # The pilot dataset manifest. We never used that dataset, so the list of download URLs
 # is somebody else index rather than a record of our work.
 reference/*.json
+
+# Downloaded pilot sequences. Each is about 2.3 GB and comes back from the manifest on
+# demand, so there is no reason to carry one in git.
+reference/pilot_*/

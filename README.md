@@ -32,7 +32,7 @@ three ways.
 | Frames with a 3D position | 2,789 |
 | Points per object | 63,889 to 555,816 |
 | Hand movement, room against glasses | 1.41 times, range 1.26 to 1.78 |
-| Grip detected automatically | 12 of 12 recordings |
+| Grip detected automatically | 12 of 12 of our recordings, chance on an outside one |
 | Position error, measured on a still object | 6.1 cm box |
 
 **The hand reading is the firmest.** The glasses measure from a camera on your head. Your head turns to follow your hand as you reach. Both move at once, so a recording

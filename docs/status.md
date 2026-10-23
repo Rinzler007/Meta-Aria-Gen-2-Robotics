@@ -82,10 +82,27 @@ window. At the 15 cm or so between wrist and object that is around 20 degrees of
 Getting this to work on carried objects needs the object's rotation from the object itself,
 which registering frame to frame does not provide on this data.
 
-**Accuracy has never been checked against a known correct answer.** Depth was checked
-against the hand positions the glasses compute on their own chip, which is independent and
-covers depth alone. The object poses have never been checked, because none of these
-recordings carries a correct answer to compare against.
+**The grip detection does not generalise.** It was checked against Meta's Aria Gen 2 Pilot
+Dataset, recorded on the same glasses by somebody else, whose labels mark a held object
+frame by frame. On their `cook_0` sequence our detection agrees 46.9 per cent of the time
+while marking 49 per cent of the recording against their 42 per cent. That is guessing. The
+left hand gives 47.5 per cent.
+
+The signal is weaker there, separating by 0.056 against 0.073 to 0.144 on our recordings.
+It comes out as 85 stretches where ours each give one. The method was built on twelve
+deliberate bench tasks where an object is picked up, carried and set down. Continuous two
+handed cooking defeats it. `tools/check_against_pilot.py` runs the comparison.
+
+So the 91 per cent agreement it scores at home is agreement with our own bench tasks.
+
+**The object poses have still not been checked against known truth.** The Pilot Dataset
+carries 6-DoF poses for 42 objects in `cook_0`. Every one of them is static furniture:
+storage, windows, lamps, chairs, tables. That matches what the EFM3D work covers, which is
+room scale. It can check static object work. It carries no ground truth for a handheld
+object's pose, so the carried object poses remain unchecked.
+
+Depth has an independent check, against the hand positions the glasses compute on their own
+chip. That covers depth alone.
 
 **The gaze interface has not been started.** A person looks at an object. The system works
 out which object they mean. It is the other half of what the glasses can do. It shares
