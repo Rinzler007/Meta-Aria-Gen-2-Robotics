@@ -19,7 +19,7 @@ The rotation is what breaks it. Taking only the path out barely changes the widt
 `scoop_01` goes from 33.8 cm to 35.1 cm. Taking the turning out as well sends it to
 77.9 cm. The rotation comes from the wrist, which is right about how far the object turned
 while being too rough to line up surfaces. The grip check in `tools/object_pose.py` shows
-the object sliding 1.5 to 5 cm inside the hand across a window, and at the 15 cm or so
+the object sliding 1.5 to 5 cm inside the hand across a window. At the 15 cm or so
 between wrist and object that is roughly 20 degrees of error.
 
 So this builds a model, measures it against the stack and keeps it only where it is
